@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogos de Matemática · 6º e 7º ano</title>
+  <meta name="description" content="Três jogos educativos de Matemática para 6º e 7º ano: Escape Room, Construa sua Cidade e Feira das Boas Escolhas.">
+  <style>
+    :root { --ink: #1d2433; --soft: #4a5468; --bg: #f4f1ea; --card: #ffffff; --line: #ddd5c4; --focus: #ff6a1a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif; font-size: 1.05rem; line-height: 1.55; color: var(--ink); background: var(--bg); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+    header { text-align: center; margin-bottom: 20px; }
+    h1 { font-size: clamp(1.7rem, 5vw, 2.6rem); margin: 0 0 6px; }
+    header p { color: var(--soft); margin: 0; }
+    .games { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; padding: 0; list-style: none; }
+    .game { background: var(--card); border: 2px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+    .banner { font-size: 2.6rem; text-align: center; padding: 18px 8px; letter-spacing: 4px; }
+    .escape .banner { background: linear-gradient(135deg, #101a2e, #18264a); }
+    .cidade .banner { background: linear-gradient(135deg, #cfe9ff, #e7f7e2); }
+    .feira .banner { background: repeating-linear-gradient(90deg, #d62839 0 30px, #fff 30px 60px); }
+    .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    h2 { margin: 0; font-size: 1.3rem; }
+    .topics { color: var(--soft); font-size: 0.95rem; margin: 0; flex: 1; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    a.btn { display: inline-flex; align-items: center; min-height: 48px; padding: 10px 16px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 2px solid var(--ink); color: var(--ink); background: #fff; }
+    a.btn.play { background: #ffcf4d; border-color: #b9860b; }
+    a.btn:hover { filter: brightness(0.96); }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+    .note { margin-top: 24px; background: #e6eefc; border-radius: 12px; padding: 12px 16px; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🎲 Jogos de Matemática</h1>
+      <p>Para jogar em equipe no 6º e no 7º ano. Escolha um jogo!</p>
+    </header>
+    <ul class="games">
+      <li class="game escape">
+        <div class="banner" aria-hidden="true">🔦🏆</div>
+        <div class="body">
+          <h2>Escape Room: O Mistério da Escola</h2>
+          <p class="topics">Resolvam desafios em 4 salas, juntem as pistas e encontrem a Taça da Gincana. Frações, decimais, múltiplos, área, inteiros, proporção, porcentagem e equações.</p>
+          <div class="actions">
+            <a class="btn play" href="escape-room-matematico/index.html">▶ Jogar</a>
+            <a class="btn" href="escape-room-matematico/tutorial.html">📘 Tutorial</a>
+          </div>
+        </div>
+      </li>
+      <li class="game cidade">
+        <div class="banner" aria-hidden="true">🏠🏫⛲</div>
+        <div class="body">
+          <h2>Construa sua Cidade</h2>
+          <p class="topics">Planejem uma cidade num terreno quadriculado sem estourar o orçamento. Área, perímetro, medidas, decimais, escala, porcentagem e razão.</p>
+          <div class="actions">
+            <a class="btn play" href="construa-sua-cidade/index.html">▶ Jogar</a>
+            <a class="btn" href="construa-sua-cidade/tutorial.html">📘 Tutorial</a>
+          </div>
+        </div>
+      </li>
+      <li class="game feira">
+        <div class="banner" aria-hidden="true">🍎🧺🍌</div>
+        <div class="body">
+          <h2>Feira das Boas Escolhas</h2>
+          <p class="topics">Atendam os clientes de uma barraca: total, troco, estoque, descontos e lucro. Dinheiro, decimais, frações, porcentagem e proporção.</p>
+          <div class="actions">
+            <a class="btn play" href="feira-das-boas-escolhas/index.html">▶ Jogar</a>
+            <a class="btn" href="feira-das-boas-escolhas/tutorial.html">📘 Tutorial</a>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <p class="note">🔒 Os jogos não pedem nome nem nenhum dado pessoal. O progresso fica salvo somente no navegador do aparelho em que se joga.</p>
+  </div>
+</body>
+</html>

@@ -12,6 +12,10 @@ A pasta `corrida-decimais-fracoes/` é um jogo anterior e serviu só de referên
 
 ## Como abrir
 
+🎮 **Jogar online:** https://ewerton-cg.github.io/jogos-matematica/
+
+Ou abra no próprio computador:
+
 1. Abra a pasta do jogo.
 2. Dê dois cliques no arquivo `index.html`. Ele abre no navegador (Chrome, Edge, Firefox ou Safari).
 
