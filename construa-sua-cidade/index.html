@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Construa sua Cidade · Matemática</title>
+  <meta name="description" content="Jogo educativo de Matemática para 6º e 7º ano: planejem uma cidade com área, perímetro, orçamento, escala e porcentagem.">
+  <style>
+    /* ==========================================================================
+       TOKENS — tema "planta de arquitetura"
+       ========================================================================== */
+    :root {
+      --sky: #dff1ff;
+      --paper: #ffffff;
+      --blueprint: #1b4f8a;
+      --blueprint-2: #2f6fb8;
+      --grass: #3d9b4f;
+      --ink: #14213d;
+      --ink-soft: #4b5873;
+      --line: #b7cde6;
+      --sun: #ffb703;
+      --sun-dark: #c27c00;
+      --ok: #1d7a3e;
+      --ok-bg: #e3f6e8;
+      --err: #b3261e;
+      --err-bg: #fde8e6;
+      --warn-bg: #fff3d6;
+      --info-bg: #e8f0fd;
+      --focus: #ff5d1f;
+      --radius: 14px;
+      --font: "Segoe UI", "Trebuchet MS", system-ui, -apple-system, sans-serif;
+      --c-casa: #f4a259;
+      --c-escola: #5b8def;
+      --c-hospital: #e85d75;
+      --c-praca: #6cc551;
+      --c-arvore: #2e8b57;
+      --c-rua: #8d99ae;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: var(--font); font-size: 1.02rem; line-height: 1.5; color: var(--ink);
+      background:
+        linear-gradient(180deg, var(--sky) 0, #f4fbff 320px, #f7fbf2 100%);
+    }
+    h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; }
+    p { margin: 0 0 0.7rem; }
+    button, input { font: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; }
+
+    .app { max-width: 1240px; margin: 0 auto; padding: 14px 16px 40px; }
+    .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .brand { font-weight: 800; font-size: 1.2rem; color: var(--blueprint); display: flex; align-items: center; gap: 8px; }
+    .topbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .card { background: var(--paper); border: 2px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 6px 18px rgba(27, 79, 138, 0.12); }
+    .card + .card { margin-top: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 46px; padding: 8px 16px; border-radius: 12px;
+      border: 2px solid var(--blueprint); background: #fff; color: var(--blueprint);
+      font-weight: 700; cursor: pointer;
+    }
+    .btn:hover { background: #eaf3ff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-main { background: var(--sun); border-color: var(--sun-dark); color: var(--ink); box-shadow: 0 3px 0 var(--sun-dark); }
+    .btn-main:hover { background: #ffc633; }
+    .btn-small { min-height: 40px; padding: 6px 12px; font-size: 0.95rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .muted { color: var(--ink-soft); }
+    .small { font-size: 0.92rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Tela inicial */
+    .hero { text-align: center; background: linear-gradient(180deg, #fff, #f0f8ff); }
+    .hero h1 { font-size: clamp(1.7rem, 5vw, 2.5rem); color: var(--blueprint); }
+    .skyline { font-size: 2.6rem; letter-spacing: 4px; }
+    .grade-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; border: 0; padding: 0; margin: 12px 0; }
+    .grade-picker legend { font-weight: 700; padding: 0; margin-bottom: 8px; }
+    .grade-option { position: relative; }
+    .grade-option input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
+    .grade-option label { display: block; height: 100%; padding: 14px; border: 3px solid var(--line); border-radius: 12px; cursor: pointer; background: #fff; }
+    .grade-option input:checked + label { border-color: var(--blueprint); background: #eaf3ff; }
+    .grade-option input:checked + label .check::before { content: "✔ Selecionado"; }
+    .grade-option input:focus-visible + label { outline: 4px solid var(--focus); outline-offset: 2px; }
+    .check { display: block; min-height: 1.4em; font-weight: 700; color: var(--blueprint); }
+    .privacy { background: var(--info-bg); border-radius: 10px; padding: 10px 14px; font-size: 0.95rem; }
+    .instructions li { margin-bottom: 6px; }
+
+    /* Layout do jogo */
+    .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr) 330px; gap: 14px; align-items: start; }
+    @media (max-width: 1100px) { .layout { grid-template-columns: 260px minmax(0, 1fr); } .objectives-col { grid-column: 1 / -1; } }
+    @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .stat { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+    .stat b { display: block; font-size: 1.15rem; }
+    .stat.over { border-color: var(--err); background: var(--err-bg); }
+
+    .catalog { display: grid; gap: 8px; }
+    .tool {
+      display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 8px; text-align: left;
+      min-height: 56px; padding: 6px 10px; border-radius: 12px; border: 2px solid var(--line); background: #fff; cursor: pointer; color: var(--ink);
+    }
+    .tool .icon { font-size: 1.6rem; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; }
+    .tool[aria-pressed="true"] { border-color: var(--blueprint); background: #eaf3ff; box-shadow: inset 0 0 0 2px var(--blueprint); }
+    .tool[aria-pressed="true"] .name::after { content: " ✔"; }
+    .tool .name { font-weight: 700; display: block; }
+    .tool .meta { font-size: 0.85rem; color: var(--ink-soft); }
+    .sizes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .size-btn { min-height: 40px; min-width: 56px; border-radius: 10px; border: 2px solid var(--line); background: #fff; cursor: pointer; font-weight: 700; color: var(--ink); }
+    .size-btn[aria-pressed="true"] { border-color: var(--grass); background: #e7f7e2; }
+    .size-btn[aria-pressed="true"]::before { content: "✔ "; }
+
+    /* Grade */
+    .grid-wrap { max-width: 560px; margin: 0 auto; }
+    .scale-note { font-size: 0.92rem; background: var(--info-bg); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
+    .grid {
+      display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px;
+      background: var(--blueprint); padding: 4px; border-radius: 10px;
+      background-image: linear-gradient(135deg, var(--blueprint), var(--blueprint-2));
+    }
+    .cell {
+      aspect-ratio: 1; min-width: 0; padding: 0; border: 0; border-radius: 3px;
+      background: #eef5ff; cursor: pointer; font-size: clamp(0.9rem, 3.2vw, 1.4rem); line-height: 1;
+      display: grid; place-items: center; position: relative; color: var(--ink);
+    }
+    .cell:hover { background: #fff; }
+    .cell:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; z-index: 2; }
+    .cell.occupied { cursor: default; }
+    .cell.t-casa { background: var(--c-casa); }
+    .cell.t-escola { background: var(--c-escola); }
+    .cell.t-hospital { background: var(--c-hospital); }
+    .cell.t-praca { background: var(--c-praca); }
+    .cell.t-arvore { background: #a6dcae; }
+    .cell.t-rua { background: var(--c-rua); background-image: repeating-linear-gradient(90deg, transparent 0 40%, rgba(255,255,255,0.7) 40% 60%, transparent 60% 100%); background-size: 100% 4px; background-repeat: no-repeat; background-position: center; }
+    .cell.preview-ok { box-shadow: inset 0 0 0 3px var(--ok); background: #c9f0d3; }
+    .cell.preview-ok::after { content: "+"; position: absolute; font-weight: 800; color: var(--ok); }
+    .cell.preview-bad { box-shadow: inset 0 0 0 3px var(--err); background-image: repeating-linear-gradient(45deg, rgba(179,38,30,0.35) 0 4px, transparent 4px 8px); }
+    .cell.removing:hover, .cell.removing.preview-del { box-shadow: inset 0 0 0 3px var(--err); }
+    .axis { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; padding: 0 4px; font-size: 0.75rem; color: var(--ink-soft); text-align: center; }
+    .status-line { min-height: 2.8em; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: #f3f6fb; font-size: 0.95rem; }
+    .status-line.err { background: var(--err-bg); border: 2px solid var(--err); }
+    .status-line.ok { background: var(--ok-bg); border: 2px solid var(--ok); }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 0.85rem; margin-top: 8px; padding: 0; list-style: none; }
+    .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; border: 1px solid rgba(0,0,0,0.3); }
+
+    /* Objetivos */
+    .round-title { color: var(--blueprint); }
+    .objective { border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; background: #fff; }
+    .objective.done { border-color: var(--ok); background: var(--ok-bg); }
+    .objective.ready { border-color: var(--sun-dark); background: var(--warn-bg); }
+    .obj-status { font-weight: 700; font-size: 0.9rem; display: block; margin-bottom: 4px; }
+    .obj-text { font-weight: 600; margin-bottom: 4px; }
+    .verify { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+    .verify label { display: block; font-weight: 700; margin-bottom: 6px; }
+    .verify-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .answer-input { min-height: 46px; width: 140px; max-width: 100%; padding: 6px 10px; border: 2px solid var(--ink); border-radius: 10px; font-size: 1.1rem; }
+    .feedback { border-radius: 10px; padding: 8px 12px; margin-top: 8px; border: 2px solid; font-size: 0.95rem; }
+    .feedback.ok { background: var(--ok-bg); border-color: var(--ok); }
+    .feedback.err { background: var(--err-bg); border-color: var(--err); }
+    .calc { font-family: Consolas, "Courier New", monospace; background: #f4f7fb; border-radius: 8px; padding: 6px 10px; display: block; margin-top: 4px; white-space: pre-wrap; }
+
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.95rem; }
+    th, td { padding: 6px 8px; border-bottom: 1px solid #e1e8f2; text-align: left; }
+    th { background: #eaf3ff; }
+    td.num, th.num { text-align: right; white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+    .history { padding-left: 20px; font-size: 0.95rem; }
+
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span aria-hidden="true">🏙️</span> Construa sua Cidade</div>
+      <nav class="topbar-actions" aria-label="Ações do jogo">
+        <button type="button" class="btn btn-small" id="btn-restart" hidden>↻ Reiniciar cidade</button>
+        <button type="button" class="btn btn-small" id="btn-home" hidden>⌂ Voltar ao início</button>
+      </nav>
+    </header>
+    <main id="screen" tabindex="-1"></main>
+    <div class="sr-only" aria-live="polite" id="live"></div>
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ==========================================================================
+       CONFIGURAÇÃO
+       Valores de dinheiro guardados em centavos de moeda (inteiros) para evitar
+       erros de arredondamento.
+       ========================================================================== */
+    const STORAGE_KEY = 'mat-construa-cidade-v1';
+    const GRID = 10;
+    const POINTS_OBJECTIVE = 10;
+    const POINTS_FIRST_TRY = 5;
+    const POINTS_BUDGET = 10;
+
+    const TYPES = {
+      casa:     { name: 'Casa',     emoji: '🏠', w: 1, h: 1, cost: 1250, color: 'var(--c-casa)' },
+      escola:   { name: 'Escola',   emoji: '🏫', w: 2, h: 2, cost: 4575, color: 'var(--c-escola)' },
+      hospital: { name: 'Hospital', emoji: '🏥', w: 2, h: 2, cost: 5240, color: 'var(--c-hospital)' },
+      praca:    { name: 'Praça',    emoji: '⛲', w: 2, h: 3, costPerCell: 325, color: 'var(--c-praca)' },
+      arvore:   { name: 'Árvore',   emoji: '🌳', w: 1, h: 1, cost: 180, color: '#a6dcae' },
+      rua:      { name: 'Rua',      emoji: '', w: 1, h: 1, cost: 90, color: 'var(--c-rua)' }
+    };
+    const TYPE_ORDER = ['casa', 'escola', 'hospital', 'praca', 'arvore', 'rua'];
+    const PRACA_SIZES = [[2, 2], [2, 3], [3, 2], [3, 3], [2, 4], [4, 2]];
+    const NEEDS_ROAD = ['casa', 'escola', 'hospital', 'praca'];
+
+    const GRADE_CONFIG = {
+      6: {
+        budget: 25000,
+        scaleText: 'Cada quadradinho é um terreno de 10 m × 10 m, ou seja, tem área de 100 m².',
+        cellMeters: 10
+      },
+      7: {
+        budget: 32000,
+        scaleText: 'Planta em escala 1 : 2 000. Cada quadradinho mede 1 cm × 1 cm no mapa, e 1 cm no mapa representa 20 m na realidade.',
+        cellMeters: 20
+      }
+    };
+
+    /* ==========================================================================
+       UTILITÁRIOS
+       ========================================================================== */
+    function money(cents) {
+      const value = (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `🪙 ${value}`;
+    }
+    function num(n, digits) {
+      return n.toLocaleString('pt-BR', { maximumFractionDigits: digits === undefined ? 2 : digits });
+    }
+    function parseNumber(raw) {
+      let text = String(raw).trim().replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/^🪙/, '').replace(/%$/, '').replace(/(m²|m2|km|m)$/i, '');
+      if (text.includes(',') && text.includes('.')) text = text.replace(/\./g, '');
+      if (!text.includes(',') && /^-?[1-9]\d{0,2}(\.\d{3})+$/.test(text)) text = text.replace(/\./g, '');
+      text = text.replace(',', '.');
+      if (!/^-?\d+(\.\d+)?$/.test(text)) return NaN;
+      return Number(text);
+    }
+    /** Aceita "1:2", "1/2", "0,5" e devolve o valor da razão. */
+    function parseRatio(raw) {
+      const text = String(raw).trim().replace(/\s+/g, '');
+      const m = text.match(/^(\d+)[:/](\d+)$/);
+      if (m) return Number(m[2]) === 0 ? NaN : Number(m[1]) / Number(m[2]);
+      return parseNumber(text);
+    }
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+    function announce(message) {
+      const live = document.getElementById('live');
+      live.textContent = '';
+      setTimeout(() => { live.textContent = message; }, 30);
+    }
+
+    /* ==========================================================================
+       CÁLCULOS DA CIDADE
+       ========================================================================== */
+    function buildingCost(b) {
+      const t = TYPES[b.type];
+      return t.costPerCell ? t.costPerCell * b.w * b.h : t.cost;
+    }
+    function totalSpent(buildings) {
+      return buildings.reduce((s, b) => s + buildingCost(b), 0);
+    }
+    function countType(buildings, type) {
+      return buildings.filter((b) => b.type === type).length;
+    }
+    function cellsOf(b) {
+      const cells = [];
+      for (let dy = 0; dy < b.h; dy++) for (let dx = 0; dx < b.w; dx++) cells.push([b.x + dx, b.y + dy]);
+      return cells;
+    }
+    function occupancy(buildings) {
+      const map = Array.from({ length: GRID }, () => Array(GRID).fill(null));
+      buildings.forEach((b) => cellsOf(b).forEach(([x, y]) => { map[y][x] = b; }));
+      return map;
+    }
+    /** Verifica se a construção cabe na posição. Devolve { ok, reason }. */
+    function canPlace(buildings, b) {
+      if (b.x < 0 || b.y < 0 || b.x + b.w > GRID || b.y + b.h > GRID) {
+        return { ok: false, reason: `Não cabe aqui: a ${TYPES[b.type].name.toLowerCase()} (${b.w} × ${b.h}) passaria da borda do terreno.` };
+      }
+      const map = occupancy(buildings);
+      const clash = cellsOf(b).find(([x, y]) => map[y][x]);
+      if (clash) {
+        const other = map[clash[1]][clash[0]];
+        return { ok: false, reason: `Espaço ocupado: já existe ${TYPES[other.type].name.toLowerCase()} na linha ${clash[1] + 1}, coluna ${clash[0] + 1}.` };
+      }
+      return { ok: true };
+    }
+    function pracas(buildings) { return buildings.filter((b) => b.type === 'praca'); }
+    function biggestPraca(buildings) {
+      return pracas(buildings).slice().sort((a, b) => b.w * b.h - a.w * a.h)[0] || null;
+    }
+    function greenCells(buildings) {
+      return buildings.filter((b) => b.type === 'praca' || b.type === 'arvore').reduce((s, b) => s + b.w * b.h, 0);
+    }
+    /** Maior distância (passos na horizontal + vertical) de uma casa até o quadradinho de escola mais próximo. */
+    function farthestHouseToSchool(buildings) {
+      const schoolCells = buildings.filter((b) => b.type === 'escola').flatMap(cellsOf);
+      if (!schoolCells.length) return null;
+      let max = 0;
+      buildings.filter((b) => b.type === 'casa').forEach((h) => {
+        const d = Math.min(...schoolCells.map(([x, y]) => Math.abs(x - h.x) + Math.abs(y - h.y)));
+        max = Math.max(max, d);
+      });
+      return max;
+    }
+    /** Ruas: todas ligadas e toda construção principal encostando em uma rua. */
+    function roadCheck(buildings) {
+      const roads = buildings.filter((b) => b.type === 'rua');
+      if (!roads.length) return { ok: false, why: 'Ainda não há ruas.' };
+      const key = (x, y) => `${x},${y}`;
+      const roadSet = new Set(roads.map((r) => key(r.x, r.y)));
+      const seen = new Set([key(roads[0].x, roads[0].y)]);
+      const queue = [[roads[0].x, roads[0].y]];
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      while (queue.length) {
+        const [x, y] = queue.shift();
+        dirs.forEach(([dx, dy]) => {
+          const k = key(x + dx, y + dy);
+          if (roadSet.has(k) && !seen.has(k)) { seen.add(k); queue.push([x + dx, y + dy]); }
+        });
+      }
+      if (seen.size !== roadSet.size) return { ok: false, why: 'Há pedaços de rua soltos: todas as ruas precisam estar ligadas umas às outras.' };
+      const lonely = buildings.filter((b) => NEEDS_ROAD.includes(b.type)).filter((b) =>
+        !cellsOf(b).some(([x, y]) => dirs.some(([dx, dy]) => roadSet.has(key(x + dx, y + dy)))));
+      if (lonely.length) {
+        const names = [...new Set(lonely.map((b) => TYPES[b.type].name.toLowerCase()))].join(', ');
+        return { ok: false, why: `${lonely.length} construção(ões) sem rua encostada (${names}).` };
+      }
+      return { ok: true, roads: roads.length };
+    }
+    function costTable(buildings) {
+      return TYPE_ORDER.map((type) => {
+        const list = buildings.filter((b) => b.type === type);
+        const subtotal = list.reduce((s, b) => s + buildingCost(b), 0);
+        return { type, qty: list.length, cells: list.reduce((s, b) => s + b.w * b.h, 0), subtotal };
+      });
+    }
+
+    /* ==========================================================================
+       OBJETIVOS POR RODADA
+       cond(city) → { ok, why }   question(city) → { prompt, kind, answer, ... }
+       ========================================================================== */
+    const ROUNDS = {
+      6: [
+        {
+          title: 'Rodada 1 · O bairro',
+          objectives: [
+            {
+              id: 'casas', text: 'Construam pelo menos 4 casas.',
+              cond: (c) => { const n = countType(c.buildings, 'casa'); return { ok: n >= 4, why: `Casas: ${n} de 4.` }; },
+              question: (c) => {
+                const n = countType(c.buildings, 'casa');
+                return { prompt: `Cada casa custa ${money(1250)}. Quanto custaram as ${n} casas de vocês?`, kind: 'money', answer: n * 1250,
+                  calc: `${n} × 12,50 = ${num(n * 12.5)}`, method: 'Multipliquem o preço de uma casa pela quantidade de casas.' };
+              }
+            },
+            {
+              id: 'praca-area', text: 'Construam uma praça com área de 6 quadradinhos.',
+              cond: (c) => { const p = pracas(c.buildings).find((b) => b.w * b.h === 6); return { ok: !!p, why: p ? '' : 'Escolham a praça 2 × 3 ou 3 × 2.' }; },
+              question: (c) => {
+                const p = pracas(c.buildings).find((b) => b.w * b.h === 6);
+                return { prompt: 'Cada quadradinho tem 100 m². Qual é a área real da praça de 6 quadradinhos, em m²?', kind: 'number', answer: 600, unit: 'm²',
+                  calc: `${p.w} × ${p.h} = 6 quadradinhos\n6 × 100 m² = 600 m²`, method: 'Contem os quadradinhos da praça e multipliquem pela área de cada um.' };
+              }
+            },
+            {
+              id: 'praca-perimetro', text: 'Calculem quantos metros de cerca são necessários para contornar essa praça.',
+              cond: (c) => { const p = pracas(c.buildings).find((b) => b.w * b.h === 6); return { ok: !!p, why: p ? '' : 'Primeiro construam a praça de 6 quadradinhos.' }; },
+              question: (c) => {
+                const p = pracas(c.buildings).find((b) => b.w * b.h === 6);
+                const a = p.w * 10, b = p.h * 10;
+                return { prompt: `A praça tem ${p.w} quadradinhos por ${p.h} quadradinhos, e cada lado de quadradinho mede 10 m. Qual é o perímetro da praça, em metros?`,
+                  kind: 'number', answer: 2 * (a + b), unit: 'm',
+                  calc: `Lados: ${p.w} × 10 = ${a} m e ${p.h} × 10 = ${b} m\n${a} + ${b} + ${a} + ${b} = ${2 * (a + b)} m`,
+                  method: 'Transformem os lados em metros (cada quadradinho = 10 m) e somem os quatro lados.' };
+              }
+            }
+          ]
+        },
+        {
+          title: 'Rodada 2 · Serviços e orçamento',
+          objectives: [
+            {
+              id: 'escola', text: 'Construam a escola perto das casas: nenhuma casa pode ficar a mais de 4 passos da escola (contando quadradinhos na horizontal e na vertical até o quadradinho da escola mais próximo).',
+              cond: (c) => {
+                const d = farthestHouseToSchool(c.buildings);
+                if (d === null) return { ok: false, why: 'Ainda não há escola.' };
+                return { ok: d <= 4, why: d <= 4 ? '' : `A casa mais distante está a ${d} passos. Aproximem a escola ou a casa.` };
+              },
+              question: (c) => {
+                const d = farthestHouseToSchool(c.buildings);
+                return { prompt: 'A casa mais distante da escola está a quantos metros dela? (cada passo de quadradinho = 10 m)', kind: 'number', answer: d * 10, unit: 'm',
+                  calc: `Casa mais distante: ${d} passos\n${d} × 10 m = ${d * 10} m`,
+                  method: 'Contem os passos da casa mais longe até a escola e multipliquem por 10 m.' };
+              }
+            },
+            {
+              id: 'hospital', text: 'Construam um hospital.',
+              cond: (c) => ({ ok: countType(c.buildings, 'hospital') >= 1, why: 'Ainda não há hospital.' }),
+              question: (c) => {
+                const spent = totalSpent(c.buildings);
+                return { prompt: 'Somem o custo de todas as construções (vejam a tabela de gastos). Quanto a cidade já gastou?', kind: 'money', answer: spent,
+                  calc: costTable(c.buildings).filter((r) => r.qty).map((r) => `${TYPES[r.type].name}: ${num(r.subtotal / 100)}`).join(' + ') + ` = ${num(spent / 100)}`,
+                  method: 'Somem os subtotais da tabela, alinhando as vírgulas.' };
+              }
+            },
+            {
+              id: 'saldo', text: `Não ultrapassem o orçamento de ${money(25000)}.`,
+              cond: (c) => { const s = totalSpent(c.buildings); return { ok: s <= 25000, why: s <= 25000 ? '' : `Passou ${money(s - 25000)} do orçamento. Usem "Desfazer" ou removam algo.` }; },
+              question: (c) => {
+                const s = totalSpent(c.buildings);
+                return { prompt: 'Quanto ainda sobra do orçamento?', kind: 'money', answer: 25000 - s,
+                  calc: `250,00 − ${num(s / 100)} = ${num((25000 - s) / 100)}`, method: 'Subtraiam o total gasto do orçamento (250,00).' };
+              }
+            }
+          ]
+        },
+        {
+          title: 'Rodada 3 · Ruas e tabela',
+          objectives: [
+            {
+              id: 'ruas', text: 'Liguem a cidade: toda casa, escola, hospital e praça deve encostar (lado com lado) em uma rua, e todas as ruas devem estar ligadas entre si.',
+              cond: (c) => { const r = roadCheck(c.buildings); return { ok: r.ok, why: r.why || '' }; },
+              question: (c) => {
+                const n = countType(c.buildings, 'rua');
+                return { prompt: 'Cada quadradinho de rua tem 10 m de comprimento. Qual é o comprimento total das ruas, em quilômetros? (1 km = 1 000 m)', kind: 'number', answer: n * 10 / 1000, unit: 'km',
+                  calc: `${n} × 10 m = ${n * 10} m\n${n * 10} ÷ 1 000 = ${num(n * 10 / 1000, 3)} km`,
+                  method: 'Calculem o total em metros e dividam por 1 000 para passar para quilômetros.' };
+              }
+            },
+            {
+              id: 'tabela', text: 'Leiam a tabela de gastos da cidade.',
+              cond: () => ({ ok: true, why: '' }),
+              question: (c) => tableQuestion(c)
+            }
+          ]
+        }
+      ],
+      7: [
+        {
+          title: 'Rodada 1 · Planta em escala',
+          objectives: [
+            {
+              id: 'casas', text: 'Construam pelo menos 5 casas.',
+              cond: (c) => { const n = countType(c.buildings, 'casa'); return { ok: n >= 5, why: `Casas: ${n} de 5.` }; },
+              question: (c) => {
+                const n = countType(c.buildings, 'casa');
+                return { prompt: `Cada casa ocupa 1 quadradinho (1 cm × 1 cm na planta). Com a escala 1 cm : 20 m, qual é a área real ocupada pelas ${n} casas, em m²?`,
+                  kind: 'number', answer: n * 400, unit: 'm²',
+                  calc: `1 cm → 20 m, então 1 quadradinho = 20 m × 20 m = 400 m²\n${n} × 400 = ${num(n * 400)} m²`,
+                  method: 'Descubram a medida real do lado do quadradinho, calculem a área de um e multipliquem pelo número de casas.' };
+              }
+            },
+            {
+              id: 'praca-lado', text: 'Construam uma praça com pelo menos 6 quadradinhos.',
+              cond: (c) => { const p = biggestPraca(c.buildings); return { ok: !!p && p.w * p.h >= 6, why: 'Escolham uma praça de 6 quadradinhos ou mais.' }; },
+              question: (c) => {
+                const p = biggestPraca(c.buildings);
+                const side = Math.max(p.w, p.h);
+                return { prompt: `O lado maior da sua praça mede ${side} cm na planta. Qual é a medida real desse lado, em metros?`, kind: 'number', answer: side * 20, unit: 'm',
+                  calc: `Escala 1 : 2 000 → 1 cm = 20 m\n${side} × 20 = ${side * 20} m`, method: 'Multipliquem a medida na planta por 20 m (o valor de cada centímetro).' };
+              }
+            }
+          ]
+        },
+        {
+          title: 'Rodada 2 · Porcentagens e custos',
+          objectives: [
+            {
+              id: 'verde', text: 'Áreas verdes (praças + árvores) devem ocupar pelo menos 10% do terreno de 100 quadradinhos.',
+              cond: (c) => { const g = greenCells(c.buildings); return { ok: g >= 10, why: `Área verde: ${g} quadradinhos.` }; },
+              question: (c) => {
+                const g = greenCells(c.buildings);
+                return { prompt: 'Que porcentagem do terreno é área verde?', kind: 'number', answer: g, unit: '%',
+                  calc: `${g} de 100 quadradinhos = ${g}/100 = ${g}%`, method: 'Contem os quadradinhos de praças e árvores e comparem com o total de 100.' };
+              }
+            },
+            {
+              id: 'escola', text: 'Construam a escola com todas as casas a no máximo 4 passos dela (horizontal + vertical até o quadradinho da escola mais próximo).',
+              cond: (c) => {
+                const d = farthestHouseToSchool(c.buildings);
+                if (d === null) return { ok: false, why: 'Ainda não há escola.' };
+                return { ok: d <= 4, why: d <= 4 ? '' : `A casa mais distante está a ${d} passos.` };
+              },
+              question: () => ({
+                prompt: `A escola custou ${money(4575)} e o orçamento é ${money(32000)}. Que porcentagem do orçamento foi gasta com a escola? Arredondem para o número inteiro mais próximo.`,
+                kind: 'percent-round', answer: 4575 / 32000 * 100, unit: '%',
+                calc: '45,75 ÷ 320 = 0,1429...\n0,1429 × 100 ≈ 14,3% → arredondando: 14%',
+                method: 'Dividam o custo da escola pelo orçamento e multipliquem por 100.' })
+            },
+            {
+              id: 'hospital', text: 'Construam um hospital escolhendo a construtora mais barata.',
+              cond: (c) => ({ ok: countType(c.buildings, 'hospital') >= 1, why: 'Ainda não há hospital.' }),
+              question: () => ({
+                prompt: `Construtora A: ${money(5240)} no total. Construtora B: ${money(4800)} + taxa de 10% sobre esse valor. Qual é a mais barata?`,
+                kind: 'choice', options: ['Construtora A', 'Construtora B', 'Custam o mesmo'], answer: 'Construtora A',
+                calc: 'B: 10% de 48,00 = 4,80 → 48,00 + 4,80 = 52,80\nA: 52,40 < 52,80 → A é mais barata (é o preço usado no jogo).',
+                method: 'Calculem 10% de 48,00, somem ao preço de B e comparem com A.' })
+            }
+          ]
+        },
+        {
+          title: 'Rodada 3 · Ruas e proporção',
+          objectives: [
+            {
+              id: 'ruas', text: 'Liguem a cidade: toda casa, escola, hospital e praça deve encostar em uma rua, e todas as ruas devem estar ligadas entre si.',
+              cond: (c) => { const r = roadCheck(c.buildings); return { ok: r.ok, why: r.why || '' }; },
+              question: (c) => {
+                const n = countType(c.buildings, 'rua');
+                return { prompt: 'Cada quadradinho de rua mede 1 cm na planta. Pela escala 1 cm : 20 m, qual é o comprimento real total das ruas, em metros?', kind: 'number', answer: n * 20, unit: 'm',
+                  calc: `${n} quadradinhos = ${n} cm na planta\n${n} × 20 = ${n * 20} m`, method: 'Contem os quadradinhos de rua e multipliquem por 20 m.' };
+              }
+            },
+            {
+              id: 'arvores', text: 'Plantem pelo menos 1 árvore para cada 2 casas.',
+              cond: (c) => {
+                const h = countType(c.buildings, 'casa'), t = countType(c.buildings, 'arvore');
+                return { ok: h > 0 && t * 2 >= h, why: `Casas: ${h}, árvores: ${t}. Precisam de pelo menos ${Math.ceil(h / 2)} árvore(s).` };
+              },
+              question: (c) => {
+                const h = countType(c.buildings, 'casa'), t = countType(c.buildings, 'arvore');
+                const g = gcd(t, h);
+                return { prompt: `A cidade tem ${t} árvore(s) e ${h} casas. Qual é a razão árvores : casas? (escrevam como ${t}:${h}, como fração ou na forma simplificada)`,
+                  kind: 'ratio', answer: t / h,
+                  calc: `árvores : casas = ${t} : ${h}` + (g > 1 ? ` = ${t / g} : ${h / g} (dividindo por ${g})` : ' (já está simplificada)'),
+                  method: 'Escrevam primeiro o número de árvores e depois o de casas. Podem simplificar dividindo os dois pelo mesmo número.' };
+              }
+            },
+            {
+              id: 'saldo', text: `Terminem dentro do orçamento de ${money(32000)}.`,
+              cond: (c) => { const s = totalSpent(c.buildings); return { ok: s <= 32000, why: s <= 32000 ? '' : `Passou ${money(s - 32000)} do orçamento.` }; },
+              question: (c) => {
+                const s = totalSpent(c.buildings);
+                const left = (32000 - s) / 32000 * 100;
+                return { prompt: 'Que porcentagem do orçamento ainda sobra? Arredondem para o número inteiro mais próximo.', kind: 'percent-round', answer: left, unit: '%',
+                  calc: `Sobra: 320,00 − ${num(s / 100)} = ${num((32000 - s) / 100)}\n${num((32000 - s) / 100)} ÷ 320 × 100 ≈ ${num(left, 1)}% → ${Math.round(left)}%`,
+                  method: 'Calculem quanto sobra, dividam pelo orçamento e multipliquem por 100.' };
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    function tableQuestion(c) {
+      const rows = costTable(c.buildings).filter((r) => r.qty > 0);
+      const max = Math.max(...rows.map((r) => r.subtotal));
+      const winners = rows.filter((r) => r.subtotal === max).map((r) => TYPES[r.type].name);
+      return {
+        prompt: 'Pela tabela de gastos, qual tipo de construção teve o MAIOR gasto total?',
+        kind: 'choice', options: rows.map((r) => TYPES[r.type].name), answer: winners,
+        calc: rows.map((r) => `${TYPES[r.type].name}: ${num(r.subtotal / 100)}`).join('\n') + `\nMaior: ${winners.join(' e ')} (${num(max / 100)})`,
+        method: 'Comparem a coluna "Subtotal" da tabela, olhando primeiro a parte inteira.'
+      };
+    }
+
+    function allObjectives(grade) {
+      return ROUNDS[grade].flatMap((r) => r.objectives);
+    }
+
+    /** Confere a resposta digitada para uma pergunta. */
+    function isCorrect(q, raw) {
+      if (q.kind === 'choice') return Array.isArray(q.answer) ? q.answer.includes(raw) : q.answer === raw;
+      if (q.kind === 'ratio') { const v = parseRatio(raw); return !Number.isNaN(v) && Math.abs(v - q.answer) < 1e-9; }
+      const v = parseNumber(raw);
+      if (Number.isNaN(v)) return null;
+      if (q.kind === 'money') return Math.round(v * 100) === q.answer;
+      if (q.kind === 'percent-round') return Math.abs(v - q.answer) <= 0.5 + 1e-9;
+      return Math.abs(v - q.answer) < 1e-9;
+    }
+    /** Identifica a pergunta pelo enunciado + resposta, para saber se a cidade mudou desde a conferência. */
+    function questionSignature(q) {
+      return q.prompt + '|' + JSON.stringify(q.answer);
+    }
+
+    /* ==========================================================================
+       ESTADO E ARMAZENAMENTO
+       ========================================================================== */
+    function defaultSave() { return { grade: 6, current: null, history: [], completed: 0 }; }
+    function loadSave() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (data && typeof data === 'object') return Object.assign(defaultSave(), data);
+      } catch (e) { /* armazenamento indisponível */ }
+      return defaultSave();
+    }
+    function persist() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); } catch (e) { /* segue sem salvar */ }
+    }
+
+    let save = loadSave();
+    let city = null;
+    let ui = { tool: 'casa', size: 1, focus: 0, message: null };
+
+    function newCity(grade) {
+      return { grade, buildings: [], undo: [], nextId: 1, round: 0, verified: {}, firstTry: {}, tries: {}, finished: false };
+    }
+    function saveCity() {
+      save.current = city && !city.finished ? city : null;
+      persist();
+    }
+    function budget() { return GRADE_CONFIG[city.grade].budget; }
+
+    /** Situação de um objetivo: 'todo' | 'ready' | 'done' | 'changed'. */
+    function objectiveState(obj) {
+      const cond = obj.cond(city);
+      if (!cond.ok) return { status: city.verified[obj.id] ? 'changed' : 'todo', cond };
+      const q = obj.question(city);
+      const v = city.verified[obj.id];
+      if (v && v === questionSignature(q)) return { status: 'done', cond, q };
+      return { status: v ? 'changed' : 'ready', cond, q };
+    }
+    function roundComplete(index) {
+      return ROUNDS[city.grade][index].objectives.every((o) => objectiveState(o).status === 'done');
+    }
+
+    function scoreBreakdown(c) {
+      const objs = allObjectives(c.grade);
+      const done = objs.filter((o) => c.verified[o.id]).length;
+      const first = objs.filter((o) => c.verified[o.id] && c.firstTry[o.id]).length;
+      const budgetOk = totalSpent(c.buildings) <= GRADE_CONFIG[c.grade].budget;
+      return {
+        done, total: objs.length, first,
+        budgetOk,
+        points: done * POINTS_OBJECTIVE + first * POINTS_FIRST_TRY + (budgetOk ? POINTS_BUDGET : 0),
+        max: objs.length * (POINTS_OBJECTIVE + POINTS_FIRST_TRY) + POINTS_BUDGET
+      };
+    }
+
+    /* ==========================================================================
+       AÇÕES DE CONSTRUÇÃO
+       ========================================================================== */
+    function toolShape() {
+      if (ui.tool === 'praca') { const [w, h] = PRACA_SIZES[ui.size]; return { w, h }; }
+      const t = TYPES[ui.tool];
+      return t ? { w: t.w, h: t.h } : { w: 1, h: 1 };
+    }
+    function placeAt(x, y) {
+      const { w, h } = toolShape();
+      const b = { id: city.nextId, type: ui.tool, x, y, w, h };
+      const check = canPlace(city.buildings, b);
+      if (!check.ok) { setMessage('err', '⛔ ' + check.reason); renderGame(); return; }
+      city.nextId += 1;
+      city.buildings.push(b);
+      city.undo.push({ action: 'add', building: b });
+      const over = totalSpent(city.buildings) > budget();
+      setMessage(over ? 'err' : 'ok',
+        `✔ ${TYPES[b.type].name} construída na linha ${y + 1}, coluna ${x + 1} (${w * h} quadradinho${w * h > 1 ? 's' : ''}, custo ${money(buildingCost(b))}).` +
+        (over ? ' ⚠️ Atenção: o orçamento foi ultrapassado.' : ''));
+      afterChange();
+    }
+    function removeAt(x, y) {
+      const b = occupancy(city.buildings)[y][x];
+      if (!b) { setMessage('err', 'Esse quadradinho já está vazio.'); renderGame(); return; }
+      city.buildings = city.buildings.filter((o) => o.id !== b.id);
+      city.undo.push({ action: 'remove', building: b });
+      setMessage('ok', `🧹 ${TYPES[b.type].name} removida. ${money(buildingCost(b))} voltaram para o orçamento.`);
+      afterChange();
+    }
+    function undoLast() {
+      const last = city.undo.pop();
+      if (!last) { setMessage('err', 'Não há nada para desfazer.'); renderGame(); return; }
+      if (last.action === 'add') city.buildings = city.buildings.filter((o) => o.id !== last.building.id);
+      if (last.action === 'remove') city.buildings.push(last.building);
+      if (last.action === 'clear') city.buildings = last.buildings.slice();
+      setMessage('ok', '↶ Última ação desfeita.');
+      afterChange();
+    }
+    function clearAll() {
+      if (!city.buildings.length) { setMessage('err', 'O terreno já está vazio.'); renderGame(); return; }
+      city.undo.push({ action: 'clear', buildings: city.buildings.slice() });
+      city.buildings = [];
+      setMessage('ok', '🧽 Terreno limpo. Se quiserem voltar atrás, usem "Desfazer".');
+      afterChange();
+    }
+    function setMessage(kind, text) { ui.message = { kind, text }; announce(text); }
+    function afterChange() { saveCity(); renderGame(); }
+
+    /* ==========================================================================
+       RENDERIZAÇÃO
+       ========================================================================== */
+    const screen = document.getElementById('screen');
+    function setTopbar(inGame) {
+      document.getElementById('btn-restart').hidden = !inGame;
+      document.getElementById('btn-home').hidden = !inGame;
+    }
+    function focusHeading() {
+      const h = screen.querySelector('h1, h2');
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus(); }
+      window.scrollTo(0, 0);
+    }
+
+    function renderHome() {
+      setTopbar(false);
+      city = null;
+      const resume = save.current
+        ? `<p><button type="button" class="btn" id="btn-resume">▶ Continuar cidade salva (${save.current.grade}º ano, rodada ${save.current.round + 1})</button></p>` : '';
+      const history = save.history.length
+        ? `<h3>Cidades anteriores neste aparelho</h3><ol class="history">${save.history.map((h) =>
+            `<li>${escapeHtml(h.date)} — ${h.grade}º ano: ${h.done} de ${h.total} objetivos, ${h.points} de ${h.max} pontos, gasto ${money(h.spent)}.</li>`).join('')}</ol>` : '';
+      screen.innerHTML = `
+        <section class="card hero" aria-labelledby="title">
+          <div class="skyline" aria-hidden="true">🏠🏫⛲🏥🌳</div>
+          <h1 id="title">Construa sua Cidade</h1>
+          <p>Vocês são a equipe de planejamento de uma cidade nova! Usem o terreno quadriculado e o orçamento com sabedoria para cumprir os objetivos de cada rodada.</p>
+        </section>
+        <section class="card" aria-labelledby="how">
+          <h2 id="how">Como jogar</h2>
+          <ul class="instructions">
+            <li><strong>1.</strong> Escolham uma construção na lista (clique ou toque).</li>
+            <li><strong>2.</strong> Cliquem em um quadradinho do terreno. Ele será o <strong>canto de cima, à esquerda</strong> da construção.</li>
+            <li><strong>3.</strong> Quando um objetivo estiver pronto, respondam a pergunta de conferência com o cálculo.</li>
+            <li>Errou ou mudou de ideia? Use <strong>Desfazer</strong> ou a ferramenta <strong>Remover</strong>. Experimentar faz parte!</li>
+            <li>Pelo teclado: use Tab para chegar ao terreno e as setas para andar pelos quadradinhos; Enter constrói.</li>
+            <li>A pontuação vem dos objetivos cumpridos, das contas certas e do orçamento respeitado — não da cidade mais bonita.</li>
+          </ul>
+          <p><a class="btn" href="tutorial.html" style="text-decoration:none">📘 Ver o tutorial completo (passo a passo e exemplos)</a></p>
+          <form id="start-form">
+            <fieldset class="grade-picker">
+              <legend>Escolham o nível:</legend>
+              ${gradeOption(6, 'Área e perímetro, conversão de medidas, decimais e leitura de tabela.')}
+              ${gradeOption(7, 'Escala, porcentagem, razão e proporção e comparação de custos.')}
+            </fieldset>
+            <button type="submit" class="btn btn-main">🏗️ Começar a construir</button>
+          </form>
+          ${resume}
+          <p class="privacy" style="margin-top:12px">🔒 <strong>Privacidade:</strong> não pedimos nome nem dados pessoais. O progresso fica salvo <strong>somente neste navegador, neste aparelho</strong>.</p>
+          <p><button type="button" class="btn btn-small" id="btn-clear">🗑 Apagar progresso salvo neste aparelho</button></p>
+          ${history}
+        </section>`;
+      focusHeading();
+      document.getElementById('start-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        startCity(Number(new FormData(e.target).get('grade')));
+      });
+      const resumeBtn = document.getElementById('btn-resume');
+      if (resumeBtn) resumeBtn.addEventListener('click', () => { city = save.current; ui.message = null; renderGame(true); });
+      document.getElementById('btn-clear').addEventListener('click', () => {
+        save = defaultSave(); persist(); renderHome(); announce('Progresso apagado deste aparelho.');
+      });
+    }
+    function gradeOption(grade, description) {
+      return `<div class="grade-option">
+          <input type="radio" name="grade" id="grade-${grade}" value="${grade}" ${save.grade === grade ? 'checked' : ''}>
+          <label for="grade-${grade}"><strong>Modo ${grade}º ano</strong><br><span class="small">${description}</span><span class="check"></span></label>
+        </div>`;
+    }
+    function startCity(grade) {
+      save.grade = grade;
+      city = newCity(grade);
+      ui = { tool: 'casa', size: 1, focus: 0, message: null };
+      saveCity();
+      renderGame(true);
+    }
+
+    function renderGame(focusTop) {
+      setTopbar(true);
+      const activeId = document.activeElement && document.activeElement.id;
+      const spent = totalSpent(city.buildings);
+      const left = budget() - spent;
+      const score = scoreBreakdown(city);
+      screen.innerHTML = `
+        <h2 class="sr-only" id="game-title">Planejamento da cidade — ${city.grade}º ano</h2>
+        <div class="stats" aria-label="Situação da cidade">
+          <div class="stat"><span class="small muted">Orçamento</span><b>${money(budget())}</b></div>
+          <div class="stat"><span class="small muted">Gasto</span><b>${money(spent)}</b></div>
+          <div class="stat ${left < 0 ? 'over' : ''}"><span class="small muted">${left < 0 ? '⚠️ Passou do orçamento' : 'Sobra'}</span><b>${money(Math.abs(left))}</b></div>
+          <div class="stat"><span class="small muted">Pontos</span><b>⭐ ${score.points}</b></div>
+        </div>
+        <div class="layout">
+          <section class="card" aria-labelledby="tools-title">${catalogHtml()}</section>
+          <section class="card" aria-labelledby="map-title">${mapHtml()}</section>
+          <section class="card objectives-col" aria-labelledby="obj-title">${objectivesHtml()}</section>
+        </div>
+        <section class="card" aria-labelledby="table-title">${costTableHtml()}</section>`;
+      bindGame();
+      if (focusTop) { focusHeading(); return; }
+      const again = activeId && document.getElementById(activeId);
+      if (again && !again.disabled) again.focus();
+      else if (again) document.getElementById('btn-clear-map').focus();
+    }
+
+    function catalogHtml() {
+      const tools = TYPE_ORDER.map((type) => {
+        const t = TYPES[type];
+        const cost = t.costPerCell ? `${money(t.costPerCell)} por quadradinho` : money(t.cost);
+        const size = type === 'praca' ? 'tamanho à escolha' : `${t.w} × ${t.h}`;
+        return `<button type="button" class="tool" id="tool-${type}" data-tool="${type}" aria-pressed="${ui.tool === type}">
+            <span class="icon" style="background:${t.color}" aria-hidden="true">${t.emoji || '🛣️'}</span>
+            <span><span class="name">${t.name}</span><span class="meta">${size} · ${cost}</span></span>
+          </button>`;
+      }).join('');
+      const sizes = ui.tool === 'praca'
+        ? `<div role="group" aria-label="Tamanho da praça"><p class="small" style="margin:6px 0 0"><strong>Tamanho da praça</strong> (largura × altura):</p><div class="sizes">${PRACA_SIZES.map(([w, h], i) =>
+            `<button type="button" class="size-btn" id="size-${i}" data-size="${i}" aria-pressed="${ui.size === i}" aria-label="${w} por ${h}, ${w * h} quadradinhos, custo ${money(w * h * 325)}">${w} × ${h}</button>`).join('')}</div>
+            <p class="small muted" style="margin-top:6px">${PRACA_SIZES[ui.size][0]} × ${PRACA_SIZES[ui.size][1]} = ${PRACA_SIZES[ui.size][0] * PRACA_SIZES[ui.size][1]} quadradinhos → custo ${money(PRACA_SIZES[ui.size][0] * PRACA_SIZES[ui.size][1] * 325)}</p></div>` : '';
+      return `
+        <h3 id="tools-title">Construções</h3>
+        <div class="catalog">${tools}
+          <button type="button" class="tool" id="tool-remover" data-tool="remover" aria-pressed="${ui.tool === 'remover'}">
+            <span class="icon" style="background:#ffd6d2" aria-hidden="true">🧹</span>
+            <span><span class="name">Remover</span><span class="meta">clique numa construção para tirar</span></span>
+          </button>
+        </div>
+        ${sizes}
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn btn-small" id="btn-undo" ${city.undo.length ? '' : 'disabled'}>↶ Desfazer</button>
+          <button type="button" class="btn btn-small" id="btn-clear-map">🧽 Limpar terreno</button>
+        </div>`;
+    }
+
+    function mapHtml() {
+      const map = occupancy(city.buildings);
+      const cfg = GRADE_CONFIG[city.grade];
+      let cells = '';
+      for (let y = 0; y < GRID; y++) {
+        for (let x = 0; x < GRID; x++) {
+          const b = map[y][x];
+          const index = y * GRID + x;
+          const isAnchor = b && b.x === x && b.y === y;
+          const label = `Linha ${y + 1}, coluna ${x + 1}: ${b ? TYPES[b.type].name.toLowerCase() : 'vazio'}`;
+          cells += `<button type="button" class="cell ${b ? 'occupied t-' + b.type : ''} ${ui.tool === 'remover' ? 'removing' : ''}" data-x="${x}" data-y="${y}" id="cell-${index}"
+            tabindex="${index === ui.focus ? 0 : -1}" aria-label="${label}">${b && isAnchor ? (TYPES[b.type].emoji || '') : (b && b.type !== 'rua' ? '<span aria-hidden="true">·</span>' : '')}</button>`;
+        }
+      }
+      const axis = Array.from({ length: GRID }, (_, i) => `<span>${i + 1}</span>`).join('');
+      const msg = ui.message;
+      return `
+        <h3 id="map-title">Terreno (10 × 10 quadradinhos)</h3>
+        <p class="scale-note">📏 ${cfg.scaleText}</p>
+        <div class="grid-wrap">
+          <div class="axis" aria-hidden="true">${axis}</div>
+          <div class="grid" role="group" aria-label="Terreno da cidade. Use as setas para mover e Enter para construir." id="grid">${cells}</div>
+          <p class="status-line ${msg ? msg.kind : ''}" id="status-line">${msg ? escapeHtml(msg.text) : 'Escolham uma construção e cliquem num quadradinho vazio. O quadradinho escolhido é o canto de cima, à esquerda.'}</p>
+          <ul class="legend" aria-label="Legenda">${TYPE_ORDER.map((t) => `<li><span class="swatch" style="background:${TYPES[t].color}"></span>${TYPES[t].emoji || '🛣️'} ${TYPES[t].name}</li>`).join('')}
+            <li><span class="swatch" style="background:#eef5ff"></span>Vazio</li></ul>
+        </div>`;
+    }
+
+    function costTableHtml() {
+      const rows = costTable(city.buildings);
+      const spent = totalSpent(city.buildings);
+      return `
+        <h3 id="table-title">📊 Tabela de gastos da cidade</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th scope="col">Construção</th><th scope="col" class="num">Quantidade</th><th scope="col" class="num">Quadradinhos</th><th scope="col" class="num">Preço</th><th scope="col" class="num">Subtotal</th></tr></thead>
+          <tbody>${rows.map((r) => {
+            const t = TYPES[r.type];
+            const price = t.costPerCell ? `${money(t.costPerCell)} / quadradinho` : money(t.cost);
+            return `<tr><td>${t.emoji || '🛣️'} ${t.name}</td><td class="num">${r.qty}</td><td class="num">${r.cells}</td><td class="num">${price}</td><td class="num">${money(r.subtotal)}</td></tr>`;
+          }).join('')}
+          <tr><th scope="row" colspan="4">Total gasto</th><th class="num">${money(spent)}</th></tr></tbody>
+        </table></div>`;
+    }
+
+    function objectivesHtml() {
+      const round = ROUNDS[city.grade][city.round];
+      const items = round.objectives.map((o) => objectiveHtml(o)).join('');
+      const complete = roundComplete(city.round);
+      const last = city.round === ROUNDS[city.grade].length - 1;
+      return `
+        <p class="small muted" style="margin:0">Rodada ${city.round + 1} de ${ROUNDS[city.grade].length}</p>
+        <h3 class="round-title" id="obj-title">${round.title}</h3>
+        ${items}
+        <button type="button" class="btn btn-main" id="btn-next-round" ${complete ? '' : 'disabled'} aria-describedby="next-help">
+          ${last ? '📋 Ver resumo dos cálculos' : 'Próxima rodada ➜'}</button>
+        <p class="small muted" id="next-help">${complete ? 'Todos os objetivos conferidos!' : 'Conferindo todos os objetivos, vocês avançam.'}</p>`;
+    }
+
+    function objectiveHtml(o) {
+      const st = objectiveState(o);
+      const labels = {
+        todo: '⏳ Falta construir',
+        ready: '🔍 Pronto para conferir',
+        done: '✔ Concluído',
+        changed: '↺ A cidade mudou: confiram de novo'
+      };
+      let body = '';
+      if (st.status === 'todo' || (st.status === 'changed' && !st.q)) {
+        body = st.cond.why ? `<p class="small muted" style="margin:0">${escapeHtml(st.cond.why)}</p>` : '';
+      } else if (st.status === 'done') {
+        body = `<span class="calc">${escapeHtml(st.q.calc)}</span>`;
+      } else {
+        body = verifyHtml(o, st.q);
+      }
+      const cls = st.status === 'done' ? 'done' : (st.status === 'ready' || st.status === 'changed') && st.q ? 'ready' : '';
+      return `<article class="objective ${cls}" aria-label="Objetivo">
+          <span class="obj-status">${labels[st.status]}</span>
+          <p class="obj-text">${escapeHtml(o.text)}</p>
+          ${body}
+          <div id="fb-${o.id}" aria-live="polite"></div>
+        </article>`;
+    }
+
+    function verifyHtml(o, q) {
+      if (q.kind === 'choice') {
+        return `<div class="verify"><p style="margin-bottom:6px"><strong>${escapeHtml(q.prompt)}</strong></p>
+          <div class="row" role="group" aria-label="Opções">${q.options.map((opt) =>
+            `<button type="button" class="btn btn-small" data-answer-obj="${o.id}" data-option="${escapeHtml(opt)}">${escapeHtml(opt)}</button>`).join('')}</div></div>`;
+      }
+      const help = q.kind === 'money' ? 'Ex.: 37,50' : q.kind === 'ratio' ? 'Ex.: 3:6 ou 1/2' : 'Use vírgula para decimais.';
+      return `<form class="verify" data-verify="${o.id}" novalidate>
+          <label for="ans-${o.id}">${escapeHtml(q.prompt)}</label>
+          <div class="verify-row">
+            ${q.kind === 'money' ? '<span aria-hidden="true">🪙</span>' : ''}
+            <input class="answer-input" id="ans-${o.id}" ${q.kind === 'ratio' ? 'inputmode="text"' : 'inputmode="decimal"'} autocomplete="off" aria-describedby="help-${o.id}">
+            ${q.unit ? `<span>${escapeHtml(q.unit)}</span>` : ''}
+            <button type="submit" class="btn btn-small btn-main">Conferir</button>
+          </div>
+          <span class="small muted" id="help-${o.id}">${help}</span>
+        </form>`;
+    }
+
+    function bindGame() {
+      screen.querySelectorAll('[data-tool]').forEach((btn) => btn.addEventListener('click', () => {
+        ui.tool = btn.dataset.tool;
+        setMessage('ok', ui.tool === 'remover' ? 'Ferramenta Remover: cliquem numa construção para tirá-la.' :
+          `${TYPES[ui.tool].name} escolhida. Agora cliquem num quadradinho vazio.`);
+        renderGame();
+      }));
+      screen.querySelectorAll('[data-size]').forEach((btn) => btn.addEventListener('click', () => {
+        ui.size = Number(btn.dataset.size);
+        renderGame();
+      }));
+      document.getElementById('btn-undo').addEventListener('click', undoLast);
+      document.getElementById('btn-clear-map').addEventListener('click', clearAll);
+      const grid = document.getElementById('grid');
+      grid.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const x = Number(cell.dataset.x), y = Number(cell.dataset.y);
+        ui.focus = y * GRID + x;
+        if (ui.tool === 'remover') removeAt(x, y); else placeAt(x, y);
+      });
+      grid.addEventListener('keydown', onGridKey);
+      grid.addEventListener('mouseover', (e) => { const c = e.target.closest('.cell'); if (c) preview(c); });
+      grid.addEventListener('focusin', (e) => { const c = e.target.closest('.cell'); if (c) preview(c); });
+      grid.addEventListener('mouseleave', clearPreview);
+      screen.querySelectorAll('[data-verify]').forEach((form) => form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        verifyObjective(form.dataset.verify, form.querySelector('input').value);
+      }));
+      screen.querySelectorAll('[data-answer-obj]').forEach((btn) => btn.addEventListener('click', () =>
+        verifyObjective(btn.dataset.answerObj, btn.dataset.option)));
+      document.getElementById('btn-next-round').addEventListener('click', nextRound);
+    }
+
+    function onGridKey(e) {
+      const moves = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: GRID, ArrowUp: -GRID };
+      if (!(e.key in moves)) return;
+      e.preventDefault();
+      const current = e.target.closest('.cell');
+      if (current) ui.focus = Number(current.dataset.y) * GRID + Number(current.dataset.x);
+      const x = ui.focus % GRID;
+      let next = ui.focus + moves[e.key];
+      if (e.key === 'ArrowRight' && x === GRID - 1) next = ui.focus;
+      if (e.key === 'ArrowLeft' && x === 0) next = ui.focus;
+      if (next < 0 || next >= GRID * GRID) next = ui.focus;
+      const cell = document.getElementById('cell-' + next);
+      screen.querySelectorAll('.cell[tabindex="0"]').forEach((c) => { c.tabIndex = -1; });
+      cell.tabIndex = 0;
+      ui.focus = next;
+      cell.focus();
+    }
+
+    function clearPreview() {
+      screen.querySelectorAll('.preview-ok, .preview-bad, .preview-del').forEach((c) => c.classList.remove('preview-ok', 'preview-bad', 'preview-del'));
+    }
+    function preview(cell) {
+      clearPreview();
+      const x = Number(cell.dataset.x), y = Number(cell.dataset.y);
+      if (ui.tool === 'remover') {
+        const b = occupancy(city.buildings)[y][x];
+        if (b) cellsOf(b).forEach(([cx, cy]) => document.getElementById('cell-' + (cy * GRID + cx)).classList.add('preview-del'));
+        return;
+      }
+      const { w, h } = toolShape();
+      const ok = canPlace(city.buildings, { type: ui.tool, x, y, w, h }).ok;
+      cellsOf({ x, y, w, h }).forEach(([cx, cy]) => {
+        if (cx < GRID && cy < GRID) document.getElementById('cell-' + (cy * GRID + cx)).classList.add(ok ? 'preview-ok' : 'preview-bad');
+      });
+    }
+
+    function verifyObjective(id, raw) {
+      const obj = allObjectives(city.grade).find((o) => o.id === id);
+      const st = objectiveState(obj);
+      if (!st.q) return;
+      const result = isCorrect(st.q, raw);
+      const fb = document.getElementById('fb-' + id);
+      if (result === null) {
+        fb.innerHTML = '<div class="feedback err"><strong>✏️ Digitem um número.</strong> Exemplo: 12 ou 37,50.</div>';
+        return;
+      }
+      city.tries[id] = (city.tries[id] || 0) + 1;
+      if (result) {
+        if (!(id in city.firstTry)) city.firstTry[id] = city.tries[id] === 1;
+        city.verified[id] = questionSignature(st.q);
+        saveCity();
+        setMessage('ok', `✔ Objetivo conferido! ${st.q.calc.replace(/\n/g, '; ')}`);
+        renderGame();
+        const head = document.getElementById('obj-title');
+        if (head) { head.setAttribute('tabindex', '-1'); head.focus(); }
+        return;
+      }
+      if (!(id in city.firstTry)) city.firstTry[id] = false;
+      saveCity();
+      const reveal = city.tries[id] >= 2;
+      fb.innerHTML = `<div class="feedback err"><strong>❌ Ainda não.</strong> ${escapeHtml(st.q.method)}
+        ${reveal ? `<span class="calc">Vejam o cálculo:\n${escapeHtml(st.q.calc)}</span>Agora digitem a resposta.` : ' Tentem de novo!'}</div>`;
+      announce('Resposta incorreta. ' + st.q.method);
+    }
+
+    function nextRound() {
+      if (!roundComplete(city.round)) return;
+      if (city.round < ROUNDS[city.grade].length - 1) {
+        city.round += 1;
+        ui.message = { kind: 'ok', text: `🎉 Rodada concluída! Começando: ${ROUNDS[city.grade][city.round].title}.` };
+        saveCity();
+        renderGame();
+        const head = document.getElementById('obj-title');
+        if (head) { head.setAttribute('tabindex', '-1'); head.focus(); }
+        announce(ui.message.text);
+        return;
+      }
+      renderSummary();
+    }
+
+    /* ---------- Resumo final ---------- */
+    function summaryCalcs(c) {
+      const cfg = GRADE_CONFIG[c.grade];
+      const lines = [];
+      const spent = totalSpent(c.buildings);
+      const b = cfg.budget;
+      const area = c.buildings.reduce((s, x) => s + x.w * x.h, 0);
+      lines.push(['Orçamento', `${num(b / 100)} − ${num(spent / 100)} = ${num((b - spent) / 100)} ${b - spent >= 0 ? '(sobrou)' : '(passou do orçamento)'}`]);
+      lines.push(['Terreno ocupado', `${area} de 100 quadradinhos`]);
+      pracas(c.buildings).forEach((p, i) => {
+        const side1 = p.w * cfg.cellMeters, side2 = p.h * cfg.cellMeters;
+        lines.push([`Praça ${i + 1}`, `${p.w} × ${p.h} = ${p.w * p.h} quadradinhos → ${side1} m × ${side2} m = ${num(side1 * side2)} m²; perímetro = 2 × (${side1} + ${side2}) = ${2 * (side1 + side2)} m`]);
+      });
+      const roads = countType(c.buildings, 'rua');
+      lines.push(['Ruas', `${roads} × ${cfg.cellMeters} m = ${roads * cfg.cellMeters} m = ${num(roads * cfg.cellMeters / 1000, 3)} km`]);
+      if (c.grade === 7) {
+        const g = greenCells(c.buildings);
+        lines.push(['Área verde', `${g} de 100 quadradinhos = ${g}% do terreno`]);
+        lines.push(['Gasto em %', `${num(spent / 100)} ÷ ${num(b / 100)} × 100 ≈ ${num(spent / b * 100, 1)}% do orçamento`]);
+        const h = countType(c.buildings, 'casa'), t = countType(c.buildings, 'arvore');
+        if (h) { const g2 = gcd(t, h) || 1; lines.push(['Razão árvores : casas', `${t} : ${h}` + (g2 > 1 ? ` = ${t / g2} : ${h / g2}` : '')]); }
+      } else {
+        const h = countType(c.buildings, 'casa');
+        lines.push(['Área das casas', `${h} × 100 m² = ${num(h * 100)} m²`]);
+      }
+      return lines;
+    }
+
+    function renderSummary() {
+      const score = scoreBreakdown(city);
+      const rows = costTable(city.buildings).filter((r) => r.qty);
+      screen.innerHTML = `
+        <section class="card" aria-labelledby="sum-title">
+          <h2 id="sum-title">📋 Resumo dos cálculos da cidade</h2>
+          <p>Antes de finalizar, confiram as contas. Se quiserem mudar algo, voltem para o mapa.</p>
+          <h3>Gastos</h3>
+          <div class="table-wrap"><table>
+            <thead><tr><th scope="col">Construção</th><th scope="col">Cálculo</th><th scope="col" class="num">Subtotal</th></tr></thead>
+            <tbody>${rows.map((r) => {
+              const t = TYPES[r.type];
+              const calc = t.costPerCell ? `${r.cells} quadradinhos × ${num(t.costPerCell / 100)}` : `${r.qty} × ${num(t.cost / 100)}`;
+              return `<tr><td>${t.emoji || '🛣️'} ${t.name}</td><td>${calc}</td><td class="num">${money(r.subtotal)}</td></tr>`;
+            }).join('')}
+            <tr><th scope="row" colspan="2">Total</th><th class="num">${money(totalSpent(city.buildings))}</th></tr></tbody>
+          </table></div>
+          <h3 style="margin-top:12px">Medidas e porcentagens</h3>
+          <div class="table-wrap"><table><tbody>${summaryCalcs(city).map(([k, v]) => `<tr><th scope="row">${k}</th><td>${escapeHtml(v)}</td></tr>`).join('')}</tbody></table></div>
+          <h3 style="margin-top:12px">Pontuação</h3>
+          <ul>
+            <li>Objetivos conferidos: ${score.done} de ${score.total} × ${POINTS_OBJECTIVE} = ${score.done * POINTS_OBJECTIVE} pontos</li>
+            <li>Raciocínio certeiro (conta certa na 1ª tentativa): ${score.first} × ${POINTS_FIRST_TRY} = ${score.first * POINTS_FIRST_TRY} pontos</li>
+            <li>Orçamento respeitado: ${score.budgetOk ? `sim, +${POINTS_BUDGET} pontos` : 'não (0 pontos)'}</li>
+            <li><strong>Total: ${score.points} de ${score.max} pontos</strong></li>
+          </ul>
+          <div class="row">
+            <button type="button" class="btn" id="btn-back-map">↩ Voltar ao mapa e ajustar</button>
+            <button type="button" class="btn btn-main" id="btn-finish">✅ Finalizar cidade</button>
+          </div>
+        </section>`;
+      focusHeading();
+      document.getElementById('btn-back-map').addEventListener('click', () => renderGame(true));
+      document.getElementById('btn-finish').addEventListener('click', finishCity);
+    }
+
+    function finishCity() {
+      const score = scoreBreakdown(city);
+      city.finished = true;
+      save.completed += 1;
+      save.history.unshift({ date: new Date().toLocaleDateString('pt-BR'), grade: city.grade, done: score.done, total: score.total,
+        points: score.points, max: score.max, spent: totalSpent(city.buildings) });
+      save.history = save.history.slice(0, 5);
+      save.current = null;
+      persist();
+      const grade = city.grade;
+      const praise = score.first === score.total
+        ? 'Todas as contas certas de primeira. Planejamento de primeira linha!'
+        : 'Vocês testaram ideias, corrigiram contas e chegaram lá. É assim que urbanistas trabalham!';
+      screen.innerHTML = `
+        <section class="card hero" aria-labelledby="end-title">
+          <div class="skyline" aria-hidden="true">🎉🏙️🎉</div>
+          <h1 id="end-title">Cidade inaugurada!</h1>
+          <p><strong>${score.points} de ${score.max} pontos</strong> · ${score.done} de ${score.total} objetivos · gasto ${money(totalSpent(city.buildings))}</p>
+          <p>${praise}</p>
+          <p><strong>Para conversar:</strong> que decisão de construção foi mais difícil? Onde a Matemática ajudou a escolher?</p>
+          <div class="row" style="justify-content:center">
+            <button type="button" class="btn btn-main" id="btn-new">🏗️ Construir nova cidade</button>
+            <button type="button" class="btn" id="btn-to-home">⌂ Voltar ao início</button>
+          </div>
+          <p class="privacy" style="margin-top:12px">🔒 O resultado ficou salvo apenas neste navegador/aparelho.</p>
+        </section>`;
+      setTopbar(false);
+      focusHeading();
+      document.getElementById('btn-new').addEventListener('click', () => startCity(grade));
+      document.getElementById('btn-to-home').addEventListener('click', renderHome);
+    }
+
+    /* ==========================================================================
+       INÍCIO
+       ========================================================================== */
+    document.getElementById('btn-home').addEventListener('click', () => { if (city) saveCity(); renderHome(); });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      if (!city) return;
+      startCity(city.grade);
+      announce('Cidade reiniciada. O terreno está vazio.');
+    });
+    renderHome();
+  </script>
+</body>
+</html>

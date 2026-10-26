@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial · Construa sua Cidade</title>
+  <style>
+    :root {
+      --blueprint: #1b4f8a; --ink: #14213d; --soft: #4b5873; --line: #b7cde6; --sun: #ffb703; --sun-dark: #c27c00;
+      --ok: #1d7a3e; --ok-bg: #e3f6e8; --err: #b3261e; --err-bg: #fde8e6; --info-bg: #e8f0fd; --focus: #ff5d1f;
+      --c-casa: #f4a259; --c-escola: #5b8def; --c-praca: #6cc551; --c-rua: #8d99ae;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif; font-size: 1.05rem; line-height: 1.6; color: var(--ink);
+      background: linear-gradient(180deg, #dff1ff 0, #f4fbff 320px, #f7fbf2 100%); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
+    h1, h2, h3 { line-height: 1.25; color: var(--blueprint); }
+    h1 { font-size: clamp(1.6rem, 5vw, 2.3rem); margin: 8px 0; }
+    .card { background: #fff; border: 2px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
+    .card h2 { margin-top: 0; }
+    a { color: var(--blueprint); }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+    .btn { display: inline-block; min-height: 48px; padding: 12px 18px; border-radius: 12px; font-weight: 700; text-decoration: none;
+      background: var(--sun); border: 2px solid var(--sun-dark); color: var(--ink); }
+    .btn-ghost { background: #fff; border-color: var(--blueprint); color: var(--blueprint); }
+    nav ol { columns: 2; padding-left: 20px; margin: 0; }
+    @media (max-width: 560px) { nav ol { columns: 1; } }
+    .steps { counter-reset: s; list-style: none; padding: 0; }
+    .steps > li { counter-increment: s; position: relative; padding: 10px 12px 10px 56px; margin-bottom: 10px; background: #f6faff; border-radius: 12px; border: 1px solid var(--line); }
+    .steps > li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--blueprint); color: #fff; font-weight: 800; display: grid; place-items: center; }
+    .box { border-radius: 12px; padding: 10px 14px; margin: 10px 0; border: 2px solid; }
+    .ok { background: var(--ok-bg); border-color: var(--ok); }
+    .err { background: var(--err-bg); border-color: var(--err); }
+    .info { background: var(--info-bg); border-color: var(--blueprint); }
+    .calc { font-family: Consolas, "Courier New", monospace; background: #f4f7fb; border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; display: block; margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #e1e8f2; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #eaf3ff; }
+    .table-wrap { overflow-x: auto; }
+    kbd { background: #fff; border: 1px solid #999; border-bottom-width: 3px; border-radius: 6px; padding: 0 6px; font-family: inherit; }
+    details { background: #f6faff; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; border: 1px solid var(--line); }
+    summary { font-weight: 700; cursor: pointer; min-height: 32px; }
+    /* Mini mapa do exemplo */
+    .mini { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 2px; background: var(--blueprint); padding: 3px; border-radius: 8px; max-width: 360px; margin: 8px 0; }
+    .mini span { aspect-ratio: 1; background: #eef5ff; border-radius: 2px; display: grid; place-items: center; font-size: clamp(0.55rem, 2.6vw, 0.9rem); }
+    .mini .c { background: var(--c-casa); } .mini .e { background: var(--c-escola); } .mini .p { background: var(--c-praca); } .mini .r { background: var(--c-rua); }
+    .status { display: inline-block; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: #f3f6fb; margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p><a class="btn btn-ghost" href="index.html">← Voltar ao jogo</a></p>
+      <h1>🏙️ Tutorial: Construa sua Cidade</h1>
+      <p>Guia para alunos e professores, com exemplos de cada tipo de cálculo.</p>
+    </header>
+
+    <nav class="card" aria-labelledby="sumario">
+      <h2 id="sumario">Sumário</h2>
+      <ol>
+        <li><a href="#objetivo">Qual é o objetivo</a></li>
+        <li><a href="#tela">Conhecendo a tela</a></li>
+        <li><a href="#construir">Como construir</a></li>
+        <li><a href="#objetivos">Objetivos e conferência</a></li>
+        <li><a href="#rodadas">As 3 rodadas e exemplos</a></li>
+        <li><a href="#pontos">Pontuação</a></li>
+        <li><a href="#duvidas">Dúvidas comuns</a></li>
+        <li><a href="#professor">Para o professor</a></li>
+      </ol>
+    </nav>
+
+    <section class="card" id="objetivo" aria-labelledby="h-obj">
+      <h2 id="h-obj">1. Qual é o objetivo</h2>
+      <p>A equipe é a <strong>equipe de planejamento</strong> de uma cidade nova. Ela tem um terreno de <strong>10 × 10 quadradinhos</strong> e um orçamento em moedas (🪙).</p>
+      <p>Em <strong>3 rodadas</strong>, a equipe cumpre objetivos, como construir uma praça de certo tamanho ou deixar a escola perto das casas. Cada objetivo é <strong>conferido com um cálculo</strong> feito a partir da cidade que vocês construíram.</p>
+      <p>Ganha mais pontos quem cumpre os objetivos e acerta as contas, não quem faz a cidade mais bonita.</p>
+    </section>
+
+    <section class="card" id="tela" aria-labelledby="h-tela">
+      <h2 id="h-tela">2. Conhecendo a tela</h2>
+      <ul>
+        <li><strong>No alto:</strong> Orçamento, Gasto, Sobra e Pontos. Se o gasto passar do orçamento, aparece "⚠️ Passou do orçamento".</li>
+        <li><strong>Construções</strong> (à esquerda): a lista com tamanho e preço de cada construção, a ferramenta 🧹 Remover e os botões ↶ Desfazer e 🧽 Limpar terreno.</li>
+        <li><strong>Terreno</strong> (no centro): a grade numerada com colunas de 1 a 10. Logo abaixo, uma linha de mensagens diz o que aconteceu.</li>
+        <li><strong>Objetivos</strong> (à direita): os objetivos da rodada atual.</li>
+        <li><strong>Tabela de gastos</strong> (embaixo): quantidade, preço e subtotal de cada tipo de construção.</li>
+      </ul>
+      <p>No celular, essas partes aparecem uma embaixo da outra.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Construção</th><th scope="col">Tamanho</th><th scope="col">Preço</th></tr></thead>
+        <tbody>
+          <tr><td>🏠 Casa</td><td>1 × 1</td><td>🪙 12,50</td></tr>
+          <tr><td>🏫 Escola</td><td>2 × 2</td><td>🪙 45,75</td></tr>
+          <tr><td>🏥 Hospital</td><td>2 × 2</td><td>🪙 52,40</td></tr>
+          <tr><td>⛲ Praça</td><td>à escolha: 2×2, 2×3, 3×2, 3×3, 2×4 ou 4×2</td><td>🪙 3,25 por quadradinho</td></tr>
+          <tr><td>🌳 Árvore</td><td>1 × 1</td><td>🪙 1,80</td></tr>
+          <tr><td>🛣️ Rua</td><td>1 × 1</td><td>🪙 0,90</td></tr>
+        </tbody>
+      </table></div>
+      <div class="box info"><strong>Medidas do terreno:</strong><br>
+        <strong>6º ano:</strong> cada quadradinho é um terreno de 10 m × 10 m, ou seja, 100 m².<br>
+        <strong>7º ano:</strong> a planta está na escala 1 : 2 000. Cada quadradinho mede 1 cm no mapa, e 1 cm no mapa representa 20 m na realidade.</div>
+    </section>
+
+    <section class="card" id="construir" aria-labelledby="h-construir">
+      <h2 id="h-construir">3. Como construir</h2>
+      <ol class="steps">
+        <li><strong>Escolham a construção</strong> clicando nela na lista. A escolhida fica destacada com ✔. Na praça, escolham também o tamanho.</li>
+        <li><strong>Passem o mouse</strong> (ou o foco do teclado) sobre o terreno. Os quadradinhos que serão ocupados aparecem com <strong>+</strong> verde quando cabe, ou listrados em vermelho quando não cabe.</li>
+        <li><strong>Cliquem em um quadradinho.</strong> Ele vira o <strong>canto de cima, à esquerda</strong> da construção. Uma escola clicada na linha 3, coluna 1 ocupa as linhas 3 e 4 e as colunas 1 e 2.</li>
+        <li><strong>Leiam a mensagem</strong> abaixo do terreno. Ela confirma a construção e o custo, ou explica por que não deu certo: passou da borda ou o espaço está ocupado.</li>
+        <li><strong>Mudaram de ideia?</strong> Usem <strong>↶ Desfazer</strong> (volta a última ação) ou a ferramenta <strong>🧹 Remover</strong> e cliquem na construção. Experimentar não tira pontos.</li>
+      </ol>
+      <p><strong>Pelo teclado:</strong> use <kbd>Tab</kbd> até chegar ao terreno, as setas <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> para andar pelos quadradinhos e <kbd>Enter</kbd> para construir.</p>
+      <p>Quadradinhos ocupados ficam coloridos e com o símbolo da construção. As ruas são cinzas.</p>
+    </section>
+
+    <section class="card" id="objetivos" aria-labelledby="h-objetivos">
+      <h2 id="h-objetivos">4. Objetivos e conferência</h2>
+      <p>Cada objetivo mostra uma situação:</p>
+      <ul>
+        <li><span class="status">⏳ Falta construir</span>: a cidade ainda não cumpre o objetivo. Uma frase curta diz o que falta, como "Casas: 2 de 4".</li>
+        <li><span class="status">🔍 Pronto para conferir</span>: aparece uma pergunta. Façam o cálculo e digitem a resposta.</li>
+        <li><span class="status">✔ Concluído</span>: o cálculo certo fica registrado no quadro.</li>
+        <li><span class="status">↺ A cidade mudou: confiram de novo</span>: vocês mexeram na cidade depois de conferir, e o resultado mudou. É só calcular de novo.</li>
+      </ul>
+      <div class="box err"><strong>Errou a conta?</strong> O jogo explica como pensar e vocês tentam de novo. No 2º erro, ele mostra o cálculo completo.</div>
+      <p>Quando todos os objetivos da rodada estiverem ✔, o botão <strong>Próxima rodada ➜</strong> é liberado.</p>
+    </section>
+
+    <section class="card" id="rodadas" aria-labelledby="h-rodadas">
+      <h2 id="h-rodadas">5. As 3 rodadas e exemplos</h2>
+      <h3>Modo 6º ano</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Rodada</th><th scope="col">Objetivos</th></tr></thead>
+        <tbody>
+          <tr><td>1 · O bairro</td><td>Pelo menos 4 casas · praça de 6 quadradinhos · perímetro da praça</td></tr>
+          <tr><td>2 · Serviços e orçamento</td><td>Escola a no máximo 4 passos de todas as casas · hospital · não passar de 🪙 250,00</td></tr>
+          <tr><td>3 · Ruas e tabela</td><td>Toda construção encostada numa rua, com as ruas ligadas entre si · ler a tabela de gastos</td></tr>
+        </tbody>
+      </table></div>
+
+      <p><strong>Uma cidade que cumpre tudo</strong> (C = casa, E = escola, H = hospital, P = praça, cinza = rua):</p>
+      <div class="mini" role="img" aria-label="Mapa de exemplo: casas na linha 1, colunas 1 a 4; rua em toda a linha 2; escola nas linhas 3 e 4, colunas 1 e 2; hospital nas linhas 3 e 4, colunas 3 e 4; praça 2 por 3 nas colunas 5 e 6, linhas 3 a 5.">
+        <span class="c">C</span><span class="c">C</span><span class="c">C</span><span class="c">C</span><span></span><span></span><span></span><span></span><span></span><span></span>
+        <span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span><span class="r"></span>
+        <span class="e">E</span><span class="e">E</span><span style="background:#e85d75">H</span><span style="background:#e85d75">H</span><span class="p">P</span><span class="p">P</span><span></span><span></span><span></span><span></span>
+        <span class="e">E</span><span class="e">E</span><span style="background:#e85d75">H</span><span style="background:#e85d75">H</span><span class="p">P</span><span class="p">P</span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span class="p">P</span><span class="p">P</span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <p><strong>Exemplos de conferência (6º ano):</strong></p>
+      <span class="calc">Custo das casas:   4 × 12,50 = 50,00
+Área da praça 2×3: 2 × 3 = 6 quadradinhos → 6 × 100 m² = 600 m²
+Perímetro:         lados 20 m e 30 m → 20 + 30 + 20 + 30 = 100 m
+Escola:            casa mais longe a 4 passos → 4 × 10 m = 40 m
+Ruas:              10 × 10 m = 100 m → 100 ÷ 1 000 = 0,1 km</span>
+      <p class="box info"><strong>O que são "passos"?</strong> Contem os quadradinhos andando só na horizontal e na vertical, da casa até o quadradinho da escola mais próximo. A casa da coluna 4 vai até a escola (coluna 2, linha 3): 2 passos para a esquerda + 2 para baixo = <strong>4 passos</strong>.</p>
+
+      <h3>Modo 7º ano</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Rodada</th><th scope="col">Objetivos</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Planta em escala</td><td>Pelo menos 5 casas · praça com 6 quadradinhos ou mais</td></tr>
+          <tr><td>2 · Porcentagens e custos</td><td>Pelo menos 10% de área verde · escola perto das casas · escolher a construtora mais barata do hospital</td></tr>
+          <tr><td>3 · Ruas e proporção</td><td>Ruas ligando tudo · 1 árvore para cada 2 casas · terminar dentro de 🪙 320,00</td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Exemplos de conferência (7º ano):</strong></p>
+      <span class="calc">Escala:       1 quadradinho = 20 m × 20 m = 400 m² → 5 casas = 2 000 m²
+Lado real:    praça 3×3 → lado de 3 cm → 3 × 20 = 60 m
+Área verde:   praça de 9 + 3 árvores = 12 de 100 quadradinhos = 12%
+Escola:       45,75 ÷ 320 × 100 ≈ 14,3% → arredondando: 14%
+Construtora:  B = 48,00 + 10% (4,80) = 52,80; A = 52,40 → A é mais barata
+Razão:        3 árvores e 5 casas → 3 : 5 (aceita 3:5, 3/5 ou 0,6)</span>
+      <p>Quando a pergunta pede para <strong>arredondar</strong>, vale o número inteiro mais próximo. Os números de quatro algarismos podem ser escritos com ou sem ponto: <code>2000</code> ou <code>2.000</code>.</p>
+
+      <h3>Resumo final</h3>
+      <p>Depois da 3ª rodada aparece o <strong>📋 Resumo dos cálculos</strong>: gastos, medidas, porcentagens e pontuação. Vocês podem <strong>↩ Voltar ao mapa e ajustar</strong> ou <strong>✅ Finalizar cidade</strong>.</p>
+    </section>
+
+    <section class="card" id="pontos" aria-labelledby="h-pontos">
+      <h2 id="h-pontos">6. Pontuação</h2>
+      <div class="table-wrap"><table><tbody>
+        <tr><th scope="row">Cada objetivo conferido</th><td>+10 pontos</td></tr>
+        <tr><th scope="row">Conta certa na 1ª tentativa</th><td>+5 pontos por objetivo</td></tr>
+        <tr><th scope="row">Orçamento respeitado no final</th><td>+10 pontos</td></tr>
+        <tr><th scope="row">Máximo</th><td>130 pontos (8 objetivos)</td></tr>
+      </tbody></table></div>
+      <p>Desfazer, remover e testar posições <strong>não tiram pontos</strong>.</p>
+    </section>
+
+    <section class="card" id="duvidas" aria-labelledby="h-duvidas">
+      <h2 id="h-duvidas">7. Dúvidas comuns</h2>
+      <details><summary>Cliquei e a construção não apareceu.</summary><p>Leiam a mensagem abaixo do terreno. A construção pode ter passado da borda ("Não cabe aqui") ou encontrado outra no caminho ("Espaço ocupado"). Lembrem que o quadradinho clicado é o canto de cima, à esquerda.</p></details>
+      <details><summary>O objetivo estava concluído e voltou para "confiram de novo".</summary><p>Vocês mudaram algo na cidade que altera aquele cálculo, como uma construção nova que muda o total gasto. Façam a conta de novo com os valores atuais.</p></details>
+      <details><summary>O botão "Próxima rodada" não libera.</summary><p>Todos os objetivos da rodada precisam estar com ✔ Concluído. Procurem o que está com ⏳ ou ↺.</p></details>
+      <details><summary>Passamos do orçamento. Perdemos?</summary><p>Não. O jogo avisa, e vocês podem desfazer ou remover construções. Só o bônus de orçamento depende de terminar dentro do valor.</p></details>
+      <details><summary>Onde vejo os preços para somar o gasto?</summary><p>Na <strong>📊 Tabela de gastos da cidade</strong>, embaixo do mapa. Ela mostra a quantidade e o subtotal de cada tipo de construção.</p></details>
+      <details><summary>Os dados ficam salvos onde?</summary><p>Só neste navegador, neste aparelho. Não pedimos nome nem nenhum dado pessoal. A tela inicial tem o botão "🗑 Apagar progresso salvo neste aparelho".</p></details>
+    </section>
+
+    <section class="card" id="professor" aria-labelledby="h-prof">
+      <h2 id="h-prof">8. Para o professor</h2>
+      <ul>
+        <li><strong>6º ano:</strong> área e perímetro de retângulos, conversão m → km, adição e subtração de decimais, leitura de tabela.</li>
+        <li><strong>7º ano:</strong> escala, porcentagem de orçamento e de área, razão e proporção, comparação de custos.</li>
+        <li><strong>Tempo aproximado:</strong> de 35 a 50 minutos.</li>
+        <li><strong>Sugestão:</strong> antes de clicar, peça que a equipe desenhe o plano no caderno quadriculado. Na conferência, peça que alguém explique a conta em voz alta.</li>
+        <li><strong>Para conversar no fim:</strong> "Que decisão de construção foi mais difícil?" e "Onde a Matemática ajudou a escolher?".</li>
+      </ul>
+      <p><a class="btn" href="index.html">▶ Abrir o jogo</a></p>
+    </section>
+  </div>
+</body>
+</html>

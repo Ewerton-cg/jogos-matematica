@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Room Matemático · O Mistério da Escola</title>
+  <meta name="description" content="Jogo educativo de Matemática para 6º e 7º ano: resolvam desafios em equipe para encontrar a Taça da Gincana.">
+  <style>
+    /* ==========================================================================
+       TOKENS — tema "investigação noturna"
+       ========================================================================== */
+    :root {
+      --bg: #101a2e;
+      --bg-2: #18264a;
+      --card: #fdf6e3;
+      --card-2: #f3e7c6;
+      --ink: #1d2433;
+      --ink-soft: #4a5468;
+      --line: #c9b98f;
+      --lamp: #ffcf4d;
+      --lamp-dark: #b9860b;
+      --teal: #1f8a8a;
+      --ok: #1d7a3e;
+      --ok-bg: #e2f5e8;
+      --err: #b3261e;
+      --err-bg: #fde7e5;
+      --info-bg: #e6eefc;
+      --focus: #ff7a1a;
+      --radius: 16px;
+      --font: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-title: Georgia, "Times New Roman", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: var(--ink);
+      background:
+        radial-gradient(700px 420px at 85% -5%, rgba(255, 207, 77, 0.22), transparent 70%),
+        radial-gradient(600px 400px at 0% 100%, rgba(31, 138, 138, 0.25), transparent 70%),
+        var(--bg);
+    }
+    h1, h2, h3 { font-family: var(--font-title); line-height: 1.2; margin: 0 0 0.5rem; }
+    p { margin: 0 0 0.75rem; }
+    button, input { font: inherit; }
+    [hidden] { display: none !important; }
+
+    .app { max-width: 980px; margin: 0 auto; padding: 16px 16px 40px; }
+
+    .topbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; color: #fff; margin-bottom: 14px;
+    }
+    .brand { font-family: var(--font-title); font-size: 1.15rem; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+    .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .card {
+      background: linear-gradient(180deg, var(--card), var(--card-2));
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    }
+    .card + .card { margin-top: 16px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 10px 18px;
+      border-radius: 12px; border: 2px solid var(--ink);
+      background: #fff; color: var(--ink);
+      font-weight: 700; cursor: pointer;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+    .btn:hover { background: #fff3cf; }
+    .btn:active { transform: translateY(2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-main { background: var(--lamp); border-color: var(--lamp-dark); box-shadow: 0 4px 0 var(--lamp-dark); font-size: 1.1rem; }
+    .btn-main:hover { background: #ffd970; }
+    .btn-ghost { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.6); }
+    .btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-small { min-height: 40px; padding: 6px 12px; font-size: 0.95rem; }
+
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .muted { color: var(--ink-soft); }
+    .small { font-size: 0.92rem; }
+
+    /* Tela inicial */
+    .hero { text-align: center; }
+    .hero h1 { font-size: clamp(1.7rem, 5vw, 2.6rem); }
+    .hero-icon { font-size: 3rem; }
+    .story { background: #fff; border-left: 6px solid var(--lamp); padding: 12px 16px; border-radius: 10px; text-align: left; }
+    .grade-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 12px 0; border: 0; padding: 0; }
+    .grade-picker legend { font-weight: 700; margin-bottom: 8px; padding: 0; }
+    .grade-option { position: relative; }
+    .grade-option input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+    .grade-option label {
+      display: block; height: 100%; padding: 14px; border: 3px solid var(--line);
+      border-radius: 14px; background: #fff; cursor: pointer;
+    }
+    .grade-option input:checked + label { border-color: var(--teal); background: #e3f4f4; }
+    .grade-option input:checked + label .check::before { content: "✔ Selecionado"; }
+    .grade-option input:focus-visible + label { outline: 4px solid var(--focus); outline-offset: 3px; }
+    .check { display: block; font-weight: 700; color: var(--teal); min-height: 1.4em; }
+    .instructions { text-align: left; }
+    .instructions li { margin-bottom: 6px; }
+    .privacy { background: var(--info-bg); border-radius: 10px; padding: 10px 14px; font-size: 0.95rem; text-align: left; }
+
+    /* Mapa das salas */
+    .rooms { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .room-chip { border: 2px dashed var(--line); border-radius: 12px; padding: 10px; text-align: center; background: #fff; }
+    .room-chip .emoji { font-size: 1.6rem; display: block; }
+    .room-chip.done { border-style: solid; border-color: var(--ok); background: var(--ok-bg); }
+    .room-chip.current { border-style: solid; border-color: var(--lamp-dark); background: #fff4cc; }
+    .room-status { display: block; font-size: 0.85rem; font-weight: 700; }
+
+    /* Sala */
+    .room-head { display: flex; gap: 12px; align-items: center; }
+    .room-emoji { font-size: 2.6rem; }
+    .roles { background: #fff; border-radius: 10px; padding: 10px 14px; font-size: 0.95rem; }
+    .roles ul { margin: 4px 0 0; padding-left: 20px; }
+    .challenge { background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 16px; margin: 14px 0; }
+    .challenge-text { font-size: 1.15rem; }
+    .tag { display: inline-block; background: var(--ink); color: #fff; border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; font-weight: 700; }
+    .answer-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+    .answer-row label { font-weight: 700; }
+    .answer-input {
+      min-height: 48px; width: 170px; max-width: 100%;
+      padding: 8px 12px; font-size: 1.2rem;
+      border: 2px solid var(--ink); border-radius: 10px;
+    }
+    .unit { font-weight: 700; }
+    .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+    .choice { min-height: 56px; font-size: 1.15rem; }
+    .choice[aria-disabled="true"] { opacity: 0.55; text-decoration: line-through; cursor: not-allowed; }
+
+    .feedback { border-radius: 12px; padding: 12px 14px; margin-top: 12px; border: 2px solid; }
+    .feedback.ok { background: var(--ok-bg); border-color: var(--ok); }
+    .feedback.err { background: var(--err-bg); border-color: var(--err); }
+    .feedback.info { background: var(--info-bg); border-color: #3b5bab; }
+    .feedback strong:first-child { display: block; margin-bottom: 4px; }
+
+    .clue-card { background: #fff7d6; border: 2px dashed var(--lamp-dark); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+
+    .hud { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill { background: #fff; border: 2px solid var(--line); border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 0.95rem; }
+
+    /* Final */
+    .clue-list { padding-left: 20px; }
+    .clue-list li { margin-bottom: 6px; }
+    .lockers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+    .locker {
+      min-height: 72px; font-size: 1.4rem; font-weight: 800;
+      border: 3px solid #44506a; background: linear-gradient(180deg, #8ea0bf, #6a7d9e);
+      color: #fff; border-radius: 10px; cursor: pointer;
+    }
+    .locker::before { content: "🔒 "; font-size: 1rem; }
+    .locker[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+    .locker[aria-disabled="true"]::before { content: "✖ "; }
+    .locker.found { background: linear-gradient(180deg, #ffe48a, #e8b528); color: var(--ink); border-color: var(--lamp-dark); }
+    .locker.found::before { content: "🏆 "; }
+
+    .summary-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; }
+    .summary-table th, .summary-table td { padding: 8px 10px; border-bottom: 1px solid #ddd; text-align: left; }
+    .summary-table th { background: #f0e6c8; }
+    .table-wrap { overflow-x: auto; }
+    .medals { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; padding: 0; list-style: none; }
+    .medals li { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 10px; }
+    .history { padding-left: 20px; font-size: 0.95rem; }
+
+    .pop { animation: pop 0.35s ease; }
+    @keyframes pop { from { transform: scale(0.96); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    @media (max-width: 560px) {
+      .card { padding: 14px; }
+      .lockers { grid-template-columns: repeat(2, 1fr); }
+      .answer-input { width: 100%; }
+      .answer-row .btn { flex: 1 1 auto; }
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span aria-hidden="true">🔦</span> Escape Room Matemático</div>
+      <nav class="topbar-actions" aria-label="Ações do jogo">
+        <button type="button" class="btn btn-ghost btn-small" id="btn-restart" hidden>↻ Reiniciar investigação</button>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-home" hidden>⌂ Voltar ao início</button>
+      </nav>
+    </header>
+
+    <main id="screen" tabindex="-1"></main>
+    <div class="sr-only" aria-live="polite" id="live"></div>
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ==========================================================================
+       CONSTANTES E ARMAZENAMENTO
+       ========================================================================== */
+    const STORAGE_KEY = 'mat-escape-room-v1';
+    const MAX_HINTS = 3;
+    const POINTS_ROOM = 10;
+    const POINTS_NO_HINT = 2;
+    const POINTS_FINAL_FIRST_TRY = 5;
+
+    const ROOMS = [
+      { id: 'biblioteca', name: 'Biblioteca', emoji: '📚' },
+      { id: 'laboratorio', name: 'Laboratório', emoji: '🧪' },
+      { id: 'quadra', name: 'Quadra', emoji: '🏀' },
+      { id: 'direcao', name: 'Sala da Direção', emoji: '🗝️' }
+    ];
+
+    /* ==========================================================================
+       BANCO DE DESAFIOS
+       Cada desafio: topic, text, type ('number' | 'choice'), answer,
+       options (choice), unit, hint, method (como pensar, sem dar a resposta)
+       e solution (resolução completa).
+       ========================================================================== */
+    const BANK = {
+      6: {
+        biblioteca: [
+          {
+            topic: 'Frações equivalentes', context: true,
+            text: 'Na prateleira, 2/3 dos livros são de aventura. Escreva uma fração equivalente a 2/3 com denominador 12. Qual é o numerador?',
+            type: 'number', answer: 8, unit: '/12',
+            hint: 'Por quanto multiplicamos o 3 para chegar a 12?',
+            method: 'Para ter uma fração equivalente, multiplique o numerador e o denominador pelo mesmo número.',
+            solution: '12 ÷ 3 = 4. Então 2 × 4 = 8. A fração equivalente é 8/12.'
+          },
+          {
+            topic: 'Comparação de frações', context: true,
+            text: 'Ana leu 3/4 de um livro e Bruno leu 5/8 do mesmo livro. Quem leu a maior parte?',
+            type: 'choice', options: ['Ana', 'Bruno', 'Leram a mesma parte'], answer: 'Ana',
+            hint: 'Tente escrever 3/4 com denominador 8.',
+            method: 'Para comparar frações, deixe os denominadores iguais e compare os numeradores.',
+            solution: '3/4 = 6/8. Como 6/8 é maior que 5/8, Ana leu mais.'
+          },
+          {
+            topic: 'Frações equivalentes', context: false,
+            text: 'Qual fração é equivalente a 15/20?',
+            type: 'choice', options: ['3/4', '2/3', '5/4', '3/5'], answer: '3/4',
+            hint: 'Existe um número que divide o 15 e o 20 ao mesmo tempo?',
+            method: 'Simplifique: divida o numerador e o denominador pelo mesmo número.',
+            solution: '15 ÷ 5 = 3 e 20 ÷ 5 = 4. Então 15/20 = 3/4.'
+          },
+          {
+            topic: 'Comparação de frações', context: false,
+            text: 'Qual destas frações é a MAIOR: 1/2, 2/5, 3/10 ou 7/10?',
+            type: 'choice', options: ['1/2', '2/5', '3/10', '7/10'], answer: '7/10',
+            hint: 'Escreva todas com denominador 10.',
+            method: 'Transforme todas as frações para o mesmo denominador e compare os numeradores.',
+            solution: '1/2 = 5/10, 2/5 = 4/10, 3/10 e 7/10. A maior é 7/10.'
+          }
+        ],
+        laboratorio: [
+          {
+            topic: 'Subtração de decimais', context: true,
+            text: 'Um frasco tem 2,5 L de água. A professora usou 0,75 L em um experimento. Quantos litros sobraram?',
+            type: 'number', answer: 1.75, unit: 'L',
+            hint: 'Escreva 2,5 como 2,50 e arme a conta com vírgula embaixo de vírgula.',
+            method: 'Na subtração de decimais, alinhe as vírgulas e complete com zeros.',
+            solution: '2,50 − 0,75 = 1,75. Sobraram 1,75 L.'
+          },
+          {
+            topic: 'Multiplicação de decimais', context: false,
+            text: 'Calcule: 3,6 × 4',
+            type: 'number', answer: 14.4, unit: '',
+            hint: 'Calcule 36 × 4 e depois coloque a vírgula.',
+            method: 'Multiplique como se não houvesse vírgula e depois conte as casas decimais.',
+            solution: '36 × 4 = 144. Como 3,6 tem uma casa decimal, a resposta é 14,4.'
+          },
+          {
+            topic: 'Divisão de decimais', context: true,
+            text: 'Uma fita de 1,2 m foi cortada em 4 pedaços iguais. Quanto mede cada pedaço, em metros?',
+            type: 'number', answer: 0.3, unit: 'm',
+            hint: '1,2 m é o mesmo que 12 décimos de metro.',
+            method: 'Divida o comprimento total pelo número de pedaços.',
+            solution: '1,2 ÷ 4 = 0,3. Cada pedaço mede 0,3 m (30 cm).'
+          },
+          {
+            topic: 'Adição de decimais', context: true,
+            text: 'Três tubos de ensaio têm 12,5 mL, 8,25 mL e 4,3 mL de líquido. Quantos mL há ao todo?',
+            type: 'number', answer: 25.05, unit: 'mL',
+            hint: 'Escreva todos com duas casas decimais: 12,50 + 8,25 + 4,30.',
+            method: 'Na adição de decimais, alinhe as vírgulas e complete com zeros.',
+            solution: '12,50 + 8,25 + 4,30 = 25,05 mL.'
+          }
+        ],
+        quadra: [
+          {
+            topic: 'Perímetro', context: true,
+            text: 'A quadra é um retângulo de 28 m de comprimento e 15 m de largura. Qual é o perímetro da quadra?',
+            type: 'number', answer: 86, unit: 'm',
+            hint: 'O perímetro é a volta completa: some os quatro lados.',
+            method: 'Perímetro do retângulo = comprimento + largura + comprimento + largura.',
+            solution: '28 + 15 + 28 + 15 = 86 m.'
+          },
+          {
+            topic: 'Área', context: true,
+            text: 'O piso do vestiário é um retângulo de 12 m por 5 m. Qual é a área do piso?',
+            type: 'number', answer: 60, unit: 'm²',
+            hint: 'Quantos quadrados de 1 m × 1 m cabem em cada fileira? E quantas fileiras há?',
+            method: 'Área do retângulo = comprimento × largura.',
+            solution: '12 × 5 = 60 m².'
+          },
+          {
+            topic: 'Área', context: false,
+            text: 'Qual é a área de um quadrado com lado de 9 m?',
+            type: 'number', answer: 81, unit: 'm²',
+            hint: 'No quadrado, todos os lados são iguais.',
+            method: 'Área do quadrado = lado × lado.',
+            solution: '9 × 9 = 81 m².'
+          },
+          {
+            topic: 'Perímetro', context: true,
+            text: 'Vão cercar com tela uma horta retangular de 6 m por 4 m, perto da quadra. Quantos metros de tela são necessários para dar uma volta completa?',
+            type: 'number', answer: 20, unit: 'm',
+            hint: 'A tela fica em volta da horta. Isso é área ou perímetro?',
+            method: 'Cercar é contornar: calcule o perímetro somando os quatro lados.',
+            solution: '6 + 4 + 6 + 4 = 20 m de tela.'
+          }
+        ],
+        direcao: [
+          {
+            topic: 'Múltiplos', context: false,
+            text: 'Qual destes números é múltiplo de 4 e de 6 ao mesmo tempo?',
+            type: 'choice', options: ['18', '24', '30', '16'], answer: '24',
+            hint: 'Teste cada número: ele está na tabuada do 4? E na do 6?',
+            method: 'Um número é múltiplo de 4 e de 6 quando a divisão por 4 e por 6 não deixa resto.',
+            solution: '24 ÷ 4 = 6 e 24 ÷ 6 = 4. Os outros falham: 18 e 30 não são múltiplos de 4; 16 não é múltiplo de 6.'
+          },
+          {
+            topic: 'Divisores', context: true,
+            text: 'A diretora quer organizar 36 cadeiras em fileiras iguais, sem sobrar cadeira. Qual quantidade de fileiras NÃO funciona?',
+            type: 'choice', options: ['4 fileiras', '6 fileiras', '9 fileiras', '8 fileiras'], answer: '8 fileiras',
+            hint: 'Divida 36 por cada número e veja se sobra resto.',
+            method: 'A quantidade de fileiras precisa ser um divisor de 36.',
+            solution: '36 ÷ 8 = 4 e sobram 4 cadeiras. Já 36 ÷ 4 = 9, 36 ÷ 6 = 6 e 36 ÷ 9 = 4, sem sobra.'
+          },
+          {
+            topic: 'Múltiplos comuns (MMC)', context: true,
+            text: 'O sinal da escola toca a cada 4 minutos e a campainha do portão a cada 6 minutos. Agora os dois tocaram juntos. Daqui a quantos minutos tocarão juntos de novo?',
+            type: 'number', answer: 12, unit: 'minutos',
+            hint: 'Liste os múltiplos de 4 e de 6. Qual é o primeiro que aparece nas duas listas?',
+            method: 'Procure o menor múltiplo comum de 4 e 6.',
+            solution: 'Múltiplos de 4: 4, 8, 12... Múltiplos de 6: 6, 12... O menor comum é 12 minutos.'
+          },
+          {
+            topic: 'Divisores', context: false,
+            text: 'Quantos divisores tem o número 12?',
+            type: 'number', answer: 6, unit: 'divisores',
+            hint: 'Comece pelo 1 e teste 2, 3, 4... até o 12.',
+            method: 'Um divisor de 12 é um número que divide 12 sem deixar resto.',
+            solution: 'Os divisores de 12 são 1, 2, 3, 4, 6 e 12. São 6 divisores.'
+          }
+        ]
+      },
+      7: {
+        biblioteca: [
+          {
+            topic: 'Proporção', context: true,
+            text: 'Na biblioteca, para cada 3 livros de mistério há 5 livros de aventura. Se há 15 livros de mistério, quantos livros de aventura existem?',
+            type: 'number', answer: 25, unit: 'livros',
+            hint: 'Quantas vezes o 3 cabe no 15?',
+            method: 'Em uma proporção, se uma quantidade é multiplicada por um número, a outra também é.',
+            solution: '15 ÷ 3 = 5. Então 5 × 5 = 25 livros de aventura.'
+          },
+          {
+            topic: 'Proporção', context: true,
+            text: 'Uma receita de massinha usa 2 copos de farinha para 3 copos de água. Com 8 copos de farinha, quantos copos de água são necessários?',
+            type: 'number', answer: 12, unit: 'copos',
+            hint: 'De 2 para 8 copos de farinha, multiplicamos por quanto?',
+            method: 'Mantenha a razão: multiplique as duas quantidades pelo mesmo número.',
+            solution: '8 ÷ 2 = 4. Então 3 × 4 = 12 copos de água.'
+          },
+          {
+            topic: 'Razão', context: true,
+            text: 'Um clube de leitura tem 12 meninas e 18 meninos. Qual é a razão entre meninas e meninos, na forma mais simples?',
+            type: 'choice', options: ['2 : 3', '3 : 2', '12 : 30', '1 : 2'], answer: '2 : 3',
+            hint: 'Qual o maior número que divide 12 e 18?',
+            method: 'Escreva meninas : meninos e simplifique dividindo os dois termos pelo mesmo número.',
+            solution: '12 : 18. Dividindo os dois por 6, temos 2 : 3.'
+          },
+          {
+            topic: 'Razão e escala', context: true,
+            text: 'Em uma planta da escola, 1 cm representa 5 m. A biblioteca mede 4 cm na planta. Qual é a medida real?',
+            type: 'number', answer: 20, unit: 'm',
+            hint: 'Cada centímetro vale 5 metros.',
+            method: 'Multiplique a medida na planta pelo valor que cada centímetro representa.',
+            solution: '4 × 5 = 20 m.'
+          }
+        ],
+        laboratorio: [
+          {
+            topic: 'Adição de números inteiros', context: true,
+            text: 'Um termômetro marcava −4 °C. A temperatura subiu 9 °C. Qual é a nova temperatura?',
+            type: 'number', answer: 5, unit: '°C',
+            hint: 'Imagine uma reta numérica: comece no −4 e ande 9 casas para a direita.',
+            method: 'Subir a temperatura é somar: calcule −4 + 9.',
+            solution: '−4 + 9 = 5. A nova temperatura é 5 °C.'
+          },
+          {
+            topic: 'Multiplicação de números inteiros', context: false,
+            text: 'Calcule: (−6) × (+7)',
+            type: 'number', answer: -42, unit: '',
+            hint: 'Sinais diferentes na multiplicação dão resultado negativo.',
+            method: 'Multiplique 6 × 7 e use a regra de sinais: (−) × (+) = (−).',
+            solution: '6 × 7 = 42 e o sinal é negativo: −42.'
+          },
+          {
+            topic: 'Subtração de números inteiros', context: true,
+            text: 'Um freezer do laboratório está a −18 °C e a sala está a 22 °C. Qual é a diferença entre as duas temperaturas?',
+            type: 'number', answer: 40, unit: '°C',
+            hint: 'Quantos graus há de −18 até 0? E de 0 até 22?',
+            method: 'A diferença é a maior temperatura menos a menor: 22 − (−18).',
+            solution: '22 − (−18) = 22 + 18 = 40 °C.'
+          },
+          {
+            topic: 'Divisão de números inteiros', context: false,
+            text: 'Calcule: (−48) ÷ (−6)',
+            type: 'number', answer: 8, unit: '',
+            hint: 'Sinais iguais na divisão dão resultado positivo.',
+            method: 'Divida 48 por 6 e use a regra de sinais: (−) ÷ (−) = (+).',
+            solution: '48 ÷ 6 = 8 e o sinal é positivo: 8.'
+          },
+          {
+            topic: 'Operações com números inteiros', context: false,
+            text: 'Calcule: −3 + (−8) − (−5)',
+            type: 'number', answer: -6, unit: '',
+            hint: 'Subtrair um número negativo é o mesmo que somar o positivo.',
+            method: 'Troque − (−5) por + 5 e resolva da esquerda para a direita.',
+            solution: '−3 + (−8) = −11. Depois, −11 + 5 = −6.'
+          }
+        ],
+        quadra: [
+          {
+            topic: 'Porcentagem', context: true,
+            text: 'Dos 40 alunos da turma, 25% jogam vôlei. Quantos alunos jogam vôlei?',
+            type: 'number', answer: 10, unit: 'alunos',
+            hint: '25% é o mesmo que 1/4.',
+            method: 'Calcule 25% de 40: divida 40 por 100 e multiplique por 25.',
+            solution: '25% de 40 = 40 ÷ 4 = 10 alunos.'
+          },
+          {
+            topic: 'Porcentagem (desconto)', context: true,
+            text: 'Uma bola custava R$ 80,00 e teve 15% de desconto. Qual é o novo preço, em reais?',
+            type: 'number', answer: 68, unit: 'reais',
+            hint: 'Primeiro descubra quanto vale 10% e 5% de 80.',
+            method: 'Calcule o valor do desconto (15% de 80) e subtraia do preço original.',
+            solution: '15% de 80 = 12. Então 80 − 12 = R$ 68,00.'
+          },
+          {
+            topic: 'Porcentagem', context: true,
+            text: 'Em 20 arremessos, a equipe acertou 13. Qual foi a porcentagem de acertos?',
+            type: 'number', answer: 65, unit: '%',
+            hint: 'Quantas vezes o 20 cabe em 100?',
+            method: 'Escreva 13/20 como uma fração de denominador 100.',
+            solution: '13/20 = 65/100 = 65%.'
+          },
+          {
+            topic: 'Porcentagem (acréscimo)', context: true,
+            text: 'O uniforme do time custava R$ 50,00 e teve aumento de 10%. Qual é o novo preço, em reais?',
+            type: 'number', answer: 55, unit: 'reais',
+            hint: '10% de um valor é dividir por 10.',
+            method: 'Calcule o aumento (10% de 50) e some ao preço original.',
+            solution: '10% de 50 = 5. Então 50 + 5 = R$ 55,00.'
+          }
+        ],
+        direcao: [
+          {
+            topic: 'Equação de uma etapa', context: false,
+            text: 'Resolva: x + 17 = 42',
+            type: 'number', answer: 25, unit: '',
+            hint: 'Que número somado com 17 dá 42?',
+            method: 'Faça a operação inversa: subtraia 17 dos dois lados.',
+            solution: 'x = 42 − 17 = 25. Conferindo: 25 + 17 = 42.'
+          },
+          {
+            topic: 'Equação de uma etapa', context: false,
+            text: 'Resolva: 4x = 52',
+            type: 'number', answer: 13, unit: '',
+            hint: '4 vezes qual número dá 52?',
+            method: 'Faça a operação inversa: divida os dois lados por 4.',
+            solution: 'x = 52 ÷ 4 = 13. Conferindo: 4 × 13 = 52.'
+          },
+          {
+            topic: 'Equação de uma etapa', context: true,
+            text: 'A diretora guardou 54 chaves em caixas com 6 chaves cada. A equação é 6x = 54. Quantas caixas (x) ela usou?',
+            type: 'number', answer: 9, unit: 'caixas',
+            hint: 'Divida o total de chaves pela quantidade em cada caixa.',
+            method: 'Faça a operação inversa da multiplicação: divida 54 por 6.',
+            solution: 'x = 54 ÷ 6 = 9 caixas.'
+          },
+          {
+            topic: 'Equação de uma etapa', context: false,
+            text: 'Resolva: x − 9 = −4',
+            type: 'number', answer: 5, unit: '',
+            hint: 'Que número, tirando 9, dá −4?',
+            method: 'Faça a operação inversa: some 9 aos dois lados.',
+            solution: 'x = −4 + 9 = 5. Conferindo: 5 − 9 = −4.'
+          },
+          {
+            topic: 'Equação de uma etapa', context: false,
+            text: 'Resolva: x ÷ 3 = 7',
+            type: 'number', answer: 21, unit: '',
+            hint: 'Qual número dividido por 3 dá 7?',
+            method: 'Faça a operação inversa: multiplique os dois lados por 3.',
+            solution: 'x = 7 × 3 = 21. Conferindo: 21 ÷ 3 = 7.'
+          }
+        ]
+      }
+    };
+
+    /* ==========================================================================
+       MISTÉRIOS FINAIS — cada pista vem de uma sala. Apenas um armário
+       satisfaz todas as pistas (conferido por validateMysteries()).
+       ========================================================================== */
+    const isMultiple = (n, d) => n % d === 0;
+    const digitSum = (n) => String(n).split('').reduce((s, c) => s + Number(c), 0);
+
+    const MYSTERIES = {
+      6: [
+        {
+          lockers: [12, 18, 20, 24, 27, 30, 36, 45],
+          clues: [
+            { text: 'O número do armário é múltiplo de 3.', test: (n) => isMultiple(n, 3) },
+            { text: 'O número do armário é par.', test: (n) => isMultiple(n, 2) },
+            { text: 'O número é maior que 1/2 de 50.', test: (n) => n > 25 },
+            { text: 'O número é múltiplo de 4.', test: (n) => isMultiple(n, 4) }
+          ]
+        },
+        {
+          lockers: [14, 15, 21, 28, 35, 40, 42, 49],
+          clues: [
+            { text: 'O número do armário é múltiplo de 7.', test: (n) => isMultiple(n, 7) },
+            { text: 'O número do armário é ímpar.', test: (n) => !isMultiple(n, 2) },
+            { text: 'O número é menor que 0,8 × 50.', test: (n) => n < 40 },
+            { text: 'A soma dos algarismos do número é 8.', test: (n) => digitSum(n) === 8 }
+          ]
+        },
+        {
+          lockers: [16, 24, 25, 32, 40, 48, 54, 60],
+          clues: [
+            { text: 'O número do armário é divisor de 240.', test: (n) => isMultiple(240, n) },
+            { text: 'O número é múltiplo de 8.', test: (n) => isMultiple(n, 8) },
+            { text: 'O número está entre 3/4 de 40 e 1/2 de 100 (sem incluir esses valores).', test: (n) => n > 30 && n < 50 },
+            { text: 'O número é múltiplo de 5.', test: (n) => isMultiple(n, 5) }
+          ]
+        }
+      ],
+      7: [
+        {
+          lockers: [15, 18, 21, 24, 27, 30, 33, 36],
+          clues: [
+            { text: 'Subtraindo 25 do número do armário, o resultado é positivo.', test: (n) => n - 25 > 0 },
+            { text: 'O número do armário é par.', test: (n) => isMultiple(n, 2) },
+            { text: 'A razão entre o número e 6 é um número inteiro.', test: (n) => isMultiple(n, 6) },
+            { text: '10% do número é um número inteiro.', test: (n) => isMultiple(n, 10) }
+          ]
+        },
+        {
+          lockers: [20, 25, 32, 40, 45, 48, 50, 64],
+          clues: [
+            { text: 'O número somado com (−30) dá um resultado positivo.', test: (n) => n + (-30) > 0 },
+            { text: '25% do número é um número inteiro.', test: (n) => isMultiple(n, 4) },
+            { text: 'O número satisfaz 2x < 100.', test: (n) => 2 * n < 100 },
+            { text: 'O número é múltiplo de 5.', test: (n) => isMultiple(n, 5) }
+          ]
+        },
+        {
+          lockers: [12, 18, 24, 36, 42, 54, 60, 72],
+          clues: [
+            { text: '(−2) × número é menor que −50.', test: (n) => -2 * n < -50 },
+            { text: 'O número dividido por 9 dá um número inteiro.', test: (n) => isMultiple(n, 9) },
+            { text: '20% do número é menor que 12.', test: (n) => n * 0.2 < 12 },
+            { text: 'O número menos 40 dá um resultado negativo.', test: (n) => n - 40 < 0 }
+          ]
+        }
+      ]
+    };
+
+    function lockersMatchingAll(mystery) {
+      return mystery.lockers.filter((n) => mystery.clues.every((c) => c.test(n)));
+    }
+
+    function validateMysteries() {
+      const problems = [];
+      [6, 7].forEach((grade) => {
+        MYSTERIES[grade].forEach((m, i) => {
+          const match = lockersMatchingAll(m);
+          if (match.length !== 1) problems.push(`Mistério ${grade}º/${i}: ${match.length} armários válidos`);
+          if (m.clues.length !== ROOMS.length) problems.push(`Mistério ${grade}º/${i}: número de pistas diferente do número de salas`);
+        });
+      });
+      return problems;
+    }
+
+    function validateBank() {
+      const problems = [];
+      [6, 7].forEach((grade) => {
+        ROOMS.forEach((room) => {
+          const list = BANK[grade][room.id];
+          if (!list || list.length < 3) problems.push(`${grade}º ${room.id}: menos de 3 desafios`);
+          (list || []).forEach((c, i) => {
+            const where = `${grade}º ${room.id} #${i}`;
+            if (c.type === 'choice' && !c.options.includes(c.answer)) problems.push(`${where}: resposta fora das opções`);
+            if (c.type === 'number' && !Number.isFinite(c.answer)) problems.push(`${where}: resposta numérica inválida`);
+            ['topic', 'text', 'hint', 'method', 'solution'].forEach((k) => { if (!c[k]) problems.push(`${where}: falta ${k}`); });
+          });
+        });
+      });
+      return problems;
+    }
+
+    /* ==========================================================================
+       UTILITÁRIOS
+       ========================================================================== */
+    function shuffle(list) {
+      const copy = list.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pickIndex(length, avoid) {
+      const options = [];
+      for (let i = 0; i < length; i++) if (i !== avoid) options.push(i);
+      return options[Math.floor(Math.random() * options.length)];
+    }
+
+    /** Converte texto digitado ("1,75", "−6", "1.75") em número. Retorna NaN se inválido. */
+    function parseAnswer(raw) {
+      let text = String(raw).trim().replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/^R\$/i, '');
+      if (text.includes(',') && text.includes('.')) text = text.replace(/\./g, '');
+      if (!text.includes(',') && /^-?[1-9]\d{0,2}(\.\d{3})+$/.test(text)) text = text.replace(/\./g, '');
+      text = text.replace(',', '.');
+      if (!/^-?\d+(\.\d+)?$/.test(text)) return NaN;
+      return Number(text);
+    }
+
+    function formatNumber(n) {
+      return n.toLocaleString('pt-BR', { maximumFractionDigits: 2 }).replace('-', '−');
+    }
+
+    function sameNumber(a, b) {
+      return Math.abs(a - b) < 1e-9;
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function announce(message) {
+      const live = document.getElementById('live');
+      live.textContent = '';
+      setTimeout(() => { live.textContent = message; }, 30);
+    }
+
+    function loadSave() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (data && typeof data === 'object') return Object.assign(defaultSave(), data);
+      } catch (e) { /* armazenamento indisponível ou corrompido */ }
+      return defaultSave();
+    }
+
+    function defaultSave() {
+      return { grade: 6, current: null, history: [], completed: 0 };
+    }
+
+    function persist() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); } catch (e) { /* modo privado: segue sem salvar */ }
+    }
+
+    /* ==========================================================================
+       ESTADO DO JOGO
+       ========================================================================== */
+    let save = loadSave();
+    let game = null; // partida atual (também salva em save.current)
+
+    function newGame(grade, previous) {
+      const picks = {};
+      ROOMS.forEach((room) => {
+        const avoid = previous && previous.grade === grade ? previous.picks[room.id] : -1;
+        picks[room.id] = pickIndex(BANK[grade][room.id].length, avoid);
+      });
+      const mysteryAvoid = previous && previous.grade === grade ? previous.mystery : -1;
+      return {
+        grade,
+        picks,
+        mystery: pickIndex(MYSTERIES[grade].length, mysteryAvoid),
+        roomIndex: 0,
+        rooms: ROOMS.map(() => ({ attempts: 0, wrong: 0, hint: false, solved: false, wrongChoices: [] })),
+        hintsLeft: MAX_HINTS,
+        finalWrong: [],
+        finished: false,
+        startedAt: Date.now()
+      };
+    }
+
+    function currentChallenge() {
+      const room = ROOMS[game.roomIndex];
+      return BANK[game.grade][room.id][game.picks[room.id]];
+    }
+
+    function saveGame() {
+      save.current = game && !game.finished ? game : null;
+      persist();
+    }
+
+    function scoreOf(g) {
+      let points = 0;
+      g.rooms.forEach((r) => {
+        if (r.solved) points += POINTS_ROOM + (r.hint ? 0 : POINTS_NO_HINT);
+      });
+      if (g.finished && g.finalWrong.length === 0) points += POINTS_FINAL_FIRST_TRY;
+      return points;
+    }
+
+    function maxScore() {
+      return ROOMS.length * (POINTS_ROOM + POINTS_NO_HINT) + POINTS_FINAL_FIRST_TRY;
+    }
+
+    /* ==========================================================================
+       RENDERIZAÇÃO
+       ========================================================================== */
+    const screen = document.getElementById('screen');
+
+    function show(html, focusSelector) {
+      screen.innerHTML = html;
+      const target = focusSelector ? screen.querySelector(focusSelector) : screen.querySelector('h1, h2');
+      if (target) {
+        if (!target.hasAttribute('tabindex') && !/^(INPUT|BUTTON)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
+        target.focus();
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function setTopbar(inGame) {
+      document.getElementById('btn-restart').hidden = !inGame;
+      document.getElementById('btn-home').hidden = !inGame;
+    }
+
+    function renderHome() {
+      setTopbar(false);
+      const resume = save.current
+        ? `<p><button type="button" class="btn" id="btn-resume">▶ Continuar investigação salva (${save.current.grade}º ano, ${save.current.roomIndex < ROOMS.length ? `sala ${save.current.roomIndex + 1} de ${ROOMS.length}` : 'corredor dos armários'})</button></p>`
+        : '';
+      const history = save.history.length
+        ? `<h3>Investigações anteriores neste aparelho</h3><ol class="history">${save.history.map((h) =>
+            `<li>${escapeHtml(h.date)} — ${h.grade}º ano: ${h.points} de ${h.max} pontos, ${h.wrong} tentativa(s) que viraram aprendizado, ${h.hints} dica(s).</li>`).join('')}</ol>`
+        : '';
+      show(`
+        <section class="card hero pop" aria-labelledby="title">
+          <div class="hero-icon" aria-hidden="true">🏆🔍</div>
+          <h1 id="title">O Mistério da Escola</h1>
+          <div class="story">
+            <p><strong>Alerta, detetives!</strong> A <strong>Taça da Gincana</strong> sumiu da vitrine na véspera da festa da escola!</p>
+            <p>Ela está escondida em um dos armários do corredor. Investiguem 4 salas, resolvam os desafios de Matemática e juntem as pistas para descobrir qual é o armário certo.</p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="how">
+          <h2 id="how">Como jogar</h2>
+          <ul class="instructions">
+            <li>Joguem em equipe, em um computador ou na tela projetada.</li>
+            <li>Em cada sala há um desafio. Acertou? A equipe ganha uma pista e vai para a próxima sala.</li>
+            <li>Errou? Sem problema! O jogo explica um jeito de pensar e vocês tentam de novo.</li>
+            <li>A equipe tem <strong>${MAX_HINTS} dicas</strong> para a investigação toda. Usar dica não impede de continuar.</li>
+            <li>Não há cronômetro: o importante é conversar, explicar o raciocínio e conferir a conta.</li>
+          </ul>
+          <p><a class="btn" href="tutorial.html" style="text-decoration:none">📘 Ver o tutorial completo (passo a passo e exemplos)</a></p>
+          <form id="start-form">
+            <fieldset class="grade-picker">
+              <legend>Escolham o nível:</legend>
+              ${gradeOption(6, 'Frações, decimais, múltiplos e divisores, perímetro e área.')}
+              ${gradeOption(7, 'Números inteiros, razão e proporção, porcentagem e equações.')}
+            </fieldset>
+            <div class="row">
+              <button type="submit" class="btn btn-main">🔦 Começar investigação</button>
+            </div>
+          </form>
+          ${resume}
+          <p class="privacy">🔒 <strong>Privacidade:</strong> o jogo não pede nome nem nenhum dado pessoal. O progresso fica salvo <strong>somente neste navegador, neste aparelho</strong>. Ele não é enviado para a internet.</p>
+          <p><button type="button" class="btn btn-small" id="btn-clear">🗑 Apagar progresso salvo neste aparelho</button></p>
+          ${history}
+        </section>
+      `);
+      document.getElementById('start-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const grade = Number(new FormData(e.target).get('grade'));
+        startGame(grade);
+      });
+      const resumeBtn = document.getElementById('btn-resume');
+      if (resumeBtn) resumeBtn.addEventListener('click', () => { game = save.current; renderRoom(); });
+      document.getElementById('btn-clear').addEventListener('click', clearProgress);
+    }
+
+    function gradeOption(grade, description) {
+      const checked = save.grade === grade ? 'checked' : '';
+      return `
+        <div class="grade-option">
+          <input type="radio" name="grade" id="grade-${grade}" value="${grade}" ${checked}>
+          <label for="grade-${grade}">
+            <strong>Modo ${grade}º ano</strong><br>
+            <span class="small">${description}</span>
+            <span class="check"></span>
+          </label>
+        </div>`;
+    }
+
+    function clearProgress() {
+      save = defaultSave();
+      game = null;
+      persist();
+      renderHome();
+      announce('Progresso apagado deste aparelho.');
+    }
+
+    function startGame(grade, previous) {
+      save.grade = grade;
+      game = newGame(grade, previous);
+      saveGame();
+      renderRoom();
+    }
+
+    function roomsMap() {
+      return `<ol class="rooms" aria-label="Salas da investigação">${ROOMS.map((room, i) => {
+        const r = game.rooms[i];
+        let cls = '';
+        let status = '🔒 Ainda não visitada';
+        if (r.solved) { cls = 'done'; status = '✔ Pista encontrada'; }
+        else if (i === game.roomIndex) { cls = 'current'; status = '➜ Investigando agora'; }
+        return `<li class="room-chip ${cls}"><span class="emoji" aria-hidden="true">${room.emoji}</span>${room.name}<span class="room-status">${status}</span></li>`;
+      }).join('')}</ol>`;
+    }
+
+    function hud() {
+      return `
+        <div class="hud" aria-label="Situação da equipe">
+          <span class="pill">🎓 ${game.grade}º ano</span>
+          <span class="pill">⭐ ${scoreOf(game)} pontos</span>
+          <span class="pill">💡 ${game.hintsLeft} de ${MAX_HINTS} dicas</span>
+          <span class="pill">🧩 ${game.rooms.filter((r) => r.solved).length} de ${ROOMS.length} pistas</span>
+        </div>`;
+    }
+
+    const ROLES = [
+      ['📖 Leitor(a)', 'lê o desafio em voz alta'],
+      ['🧮 Calculista', 'resolve no caderno e explica'],
+      ['✅ Conferente', 'confere a conta antes de enviar']
+    ];
+
+    function rolesBox() {
+      const shift = game.roomIndex % ROLES.length;
+      const rotated = ROLES.slice(shift).concat(ROLES.slice(0, shift));
+      return `<div class="roles"><strong>Combinem os papéis desta sala</strong> (eles mudam a cada sala):
+        <ul>${rotated.map(([role, task]) => `<li>${role}: ${task}.</li>`).join('')}</ul></div>`;
+    }
+
+    function renderRoom() {
+      setTopbar(true);
+      if (game.roomIndex >= ROOMS.length) { renderFinal(); return; }
+      const room = ROOMS[game.roomIndex];
+      const state = game.rooms[game.roomIndex];
+      const ch = currentChallenge();
+      show(`
+        ${hud()}
+        <section class="card" aria-label="Mapa">${roomsMap()}</section>
+        <section class="card pop" aria-labelledby="room-title">
+          <div class="room-head">
+            <span class="room-emoji" aria-hidden="true">${room.emoji}</span>
+            <div>
+              <p class="muted small">Sala ${game.roomIndex + 1} de ${ROOMS.length}</p>
+              <h2 id="room-title">${room.name}</h2>
+            </div>
+          </div>
+          ${rolesBox()}
+          <div class="challenge">
+            <p class="muted small">${ch.context ? '📝 Problema da escola' : '🔢 Cálculo direto'}</p>
+            <p class="challenge-text" id="challenge-text">${escapeHtml(ch.text)}</p>
+            ${answerArea(ch, state)}
+          </div>
+          <div class="row">
+            <button type="button" class="btn" id="btn-hint" ${state.hint ? 'disabled' : ''}>💡 ${state.hint ? 'Dica já usada nesta sala' : 'Pedir uma dica'}</button>
+          </div>
+          <div id="hint-area">${state.hint ? hintHtml(ch) : ''}</div>
+          <div id="feedback" aria-live="polite"></div>
+        </section>
+      `, ch.type === 'number' ? '#answer' : '#room-title');
+      bindRoom(ch);
+      // Partida retomada depois de acertar, mas antes de avançar: mostra a pista direto.
+      if (state.solved) onSolved(ch, ch.type === 'number' ? formatNumber(ch.answer) : ch.answer);
+    }
+
+    function answerArea(ch, state) {
+      if (ch.type === 'choice') {
+        return `<div class="choices" role="group" aria-labelledby="challenge-text">${ch.options.map((opt) => {
+          const used = state.wrongChoices.includes(opt);
+          return `<button type="button" class="btn choice" data-choice="${escapeHtml(opt)}" ${used ? 'aria-disabled="true"' : ''}>${used ? '✖ ' : ''}${escapeHtml(opt)}</button>`;
+        }).join('')}</div>`;
+      }
+      return `
+        <form class="answer-row" id="answer-form" novalidate>
+          <label for="answer">Resposta:</label>
+          <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off" aria-describedby="answer-help">
+          ${ch.unit ? `<span class="unit">${escapeHtml(ch.unit)}</span>` : ''}
+          <button type="submit" class="btn btn-main">Conferir</button>
+          <p class="muted small" id="answer-help" style="flex-basis:100%;margin:0">Use vírgula para decimais (ex.: 1,75). Para negativos, use o sinal de menos (ex.: -6).</p>
+        </form>`;
+    }
+
+    function hintHtml(ch) {
+      return `<div class="feedback info"><strong>💡 Dica</strong>${escapeHtml(ch.hint)}</div>`;
+    }
+
+    function bindRoom(ch) {
+      const form = document.getElementById('answer-form');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const raw = document.getElementById('answer').value;
+          const value = parseAnswer(raw);
+          if (Number.isNaN(value)) {
+            showFeedback('err', '✏️ Ainda não entendi a resposta', 'Digite apenas um número, como 12 ou 1,75.');
+            return;
+          }
+          checkAnswer(sameNumber(value, ch.answer), formatNumber(value));
+        });
+      }
+      screen.querySelectorAll('[data-choice]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (btn.getAttribute('aria-disabled') === 'true') return;
+          const choice = btn.dataset.choice;
+          const correct = choice === ch.answer;
+          if (!correct) {
+            game.rooms[game.roomIndex].wrongChoices.push(choice);
+            btn.setAttribute('aria-disabled', 'true');
+            btn.textContent = '✖ ' + choice;
+          }
+          checkAnswer(correct, choice);
+        });
+      });
+      document.getElementById('btn-hint').addEventListener('click', useHint);
+    }
+
+    function useHint() {
+      const state = game.rooms[game.roomIndex];
+      const btn = document.getElementById('btn-hint');
+      if (state.hint) return;
+      if (game.hintsLeft <= 0) {
+        document.getElementById('hint-area').innerHTML =
+          '<div class="feedback info"><strong>Acabaram as dicas da equipe</strong>Releiam o desafio juntos, desenhem a situação e tentem um caminho. Se errarem, o jogo mostra como pensar.</div>';
+        return;
+      }
+      state.hint = true;
+      game.hintsLeft -= 1;
+      btn.disabled = true;
+      btn.textContent = '💡 Dica já usada nesta sala';
+      document.getElementById('hint-area').innerHTML = hintHtml(currentChallenge());
+      saveGame();
+      refreshHud();
+      announce('Dica: ' + currentChallenge().hint);
+    }
+
+    function refreshHud() {
+      const old = screen.querySelector('.hud');
+      if (old) old.outerHTML = hud();
+    }
+
+    function showFeedback(kind, title, body, extraHtml) {
+      document.getElementById('feedback').innerHTML =
+        `<div class="feedback ${kind} pop"><strong>${title}</strong>${body}${extraHtml || ''}</div>`;
+    }
+
+    function checkAnswer(correct, shownValue) {
+      const state = game.rooms[game.roomIndex];
+      const ch = currentChallenge();
+      state.attempts += 1;
+      if (correct) {
+        state.solved = true;
+        saveGame();
+        onSolved(ch, shownValue);
+        return;
+      }
+      state.wrong += 1;
+      saveGame();
+      const body = state.wrong >= 2
+        ? `<p>Vamos resolver juntos: ${escapeHtml(ch.solution)}</p><p>Agora confiram e enviem a resposta certa para pegar a pista.</p>`
+        : `<p>"${escapeHtml(shownValue)}" ainda não é a resposta. ${escapeHtml(ch.method)}</p><p>Conversem e tentem de novo!</p>`;
+      showFeedback('err', '❌ Quase! Tentem outra vez', body);
+      announce('Resposta incorreta. ' + (state.wrong >= 2 ? ch.solution : ch.method));
+      const input = document.getElementById('answer');
+      if (input) { input.select(); input.focus(); }
+    }
+
+    function onSolved(ch, shownValue) {
+      const clue = MYSTERIES[game.grade][game.mystery].clues[game.roomIndex];
+      const state = game.rooms[game.roomIndex];
+      const praise = state.wrong > 0
+        ? 'Vocês não desistiram e chegaram lá. Isso é persistência de detetive!'
+        : 'Raciocínio certeiro logo na primeira tentativa!';
+      showFeedback('ok', `✅ Correto: ${escapeHtml(shownValue)}${ch.unit && ch.type === 'number' ? ' ' + escapeHtml(ch.unit) : ''}`,
+        `<p>${escapeHtml(ch.solution)}</p><p><span class="tag">Conteúdo: ${escapeHtml(ch.topic)}</span></p><p>${praise}</p>`,
+        `<div class="clue-card"><strong>🧩 Pista ${game.roomIndex + 1} encontrada:</strong> ${escapeHtml(clue.text)}</div>
+         <div class="row" style="margin-top:12px"><button type="button" class="btn btn-main" id="btn-next">${game.roomIndex + 1 < ROOMS.length ? 'Ir para a próxima sala ➜' : 'Juntar as pistas 🧩'}</button></div>`);
+      screen.querySelectorAll('#answer-form input, #answer-form button, [data-choice], #btn-hint').forEach((el) => { el.disabled = true; });
+      refreshHud();
+      announce('Correto! Pista encontrada: ' + clue.text);
+      const next = document.getElementById('btn-next');
+      next.addEventListener('click', () => {
+        game.roomIndex += 1;
+        saveGame();
+        renderRoom();
+      });
+      next.focus();
+    }
+
+    /* ---------- Etapa final: combinar as pistas ---------- */
+    function renderFinal() {
+      setTopbar(true);
+      const mystery = MYSTERIES[game.grade][game.mystery];
+      show(`
+        ${hud()}
+        <section class="card pop" aria-labelledby="final-title">
+          <h2 id="final-title">🧩 O corredor dos armários</h2>
+          <p>Vocês chegaram ao corredor! A taça está em <strong>um único armário</strong>. Usem <strong>todas</strong> as pistas para descobrir qual é.</p>
+          <ol class="clue-list">${mystery.clues.map((c, i) => `<li><strong>${ROOMS[i].emoji} ${ROOMS[i].name}:</strong> ${escapeHtml(c.text)}</li>`).join('')}</ol>
+          <p class="muted small">Estratégia: testem cada pista e eliminem os armários que não servem. Escrevam no caderno quais sobram.</p>
+          <div class="lockers" role="group" aria-label="Armários">${mystery.lockers.map((n) => {
+            const wrong = game.finalWrong.includes(n);
+            return `<button type="button" class="locker" data-locker="${n}" ${wrong ? 'aria-disabled="true"' : ''} aria-label="Armário ${n}${wrong ? ', já eliminado' : ''}">${n}</button>`;
+          }).join('')}</div>
+          <div id="feedback" aria-live="polite"></div>
+        </section>
+      `);
+      screen.querySelectorAll('[data-locker]').forEach((btn) => btn.addEventListener('click', () => chooseLocker(Number(btn.dataset.locker), btn)));
+    }
+
+    function chooseLocker(number, btn) {
+      if (btn.getAttribute('aria-disabled') === 'true') return;
+      const mystery = MYSTERIES[game.grade][game.mystery];
+      const failed = mystery.clues
+        .map((c, i) => ({ c, i }))
+        .filter(({ c }) => !c.test(number));
+      if (failed.length === 0) {
+        game.finished = true;
+        btn.classList.add('found');
+        finishGame();
+        return;
+      }
+      game.finalWrong.push(number);
+      saveGame();
+      btn.setAttribute('aria-disabled', 'true');
+      btn.setAttribute('aria-label', `Armário ${number}, já eliminado`);
+      const reasons = failed.map(({ c, i }) => `<li>Pista ${i + 1}: ${escapeHtml(c.text)}</li>`).join('');
+      showFeedback('err', `❌ O armário ${number} está vazio`, `<p>O número ${number} não combina com:</p><ul>${reasons}</ul><p>Eliminem esse armário e testem outro.</p>`);
+      announce(`Armário ${number} está vazio. Não combina com ${failed.length} pista(s).`);
+    }
+
+    function finishGame() {
+      const points = scoreOf(game);
+      const totalWrong = game.rooms.reduce((s, r) => s + r.wrong, 0) + game.finalWrong.length;
+      const hintsUsed = MAX_HINTS - game.hintsLeft;
+      save.completed += 1;
+      save.history.unshift({
+        date: new Date().toLocaleDateString('pt-BR'),
+        grade: game.grade, points, max: maxScore(), wrong: totalWrong, hints: hintsUsed
+      });
+      save.history = save.history.slice(0, 5);
+      const finished = game;
+      save.current = null;
+      persist();
+      renderSummary(finished, points, totalWrong, hintsUsed);
+    }
+
+    function medalsFor(g, totalWrong, hintsUsed) {
+      const medals = [];
+      medals.push(['🕵️ Detetives', 'Resolveram as 4 salas e encontraram a taça.']);
+      if (g.rooms.some((r) => r.wrong > 0) || g.finalWrong.length > 0) medals.push(['💪 Persistência', 'Erraram, aprenderam com a explicação e continuaram.']);
+      if (hintsUsed === 0) medals.push(['🧠 Raciocínio independente', 'Concluíram sem usar dicas.']);
+      else medals.push(['🤝 Saber pedir ajuda', `Usaram ${hintsUsed} dica(s) na hora certa.`]);
+      if (g.finalWrong.length === 0) medals.push(['🔎 Lógica afiada', 'Acharam o armário certo combinando as pistas de primeira.']);
+      medals.push(['🗣️ Trabalho em equipe', 'Revezaram os papéis de leitor(a), calculista e conferente.']);
+      return medals;
+    }
+
+    function renderSummary(g, points, totalWrong, hintsUsed) {
+      const mystery = MYSTERIES[g.grade][g.mystery];
+      const locker = lockersMatchingAll(mystery)[0];
+      const rows = ROOMS.map((room, i) => {
+        const ch = BANK[g.grade][room.id][g.picks[room.id]];
+        const r = g.rooms[i];
+        return `<tr><td>${room.emoji} ${room.name}</td><td>${escapeHtml(ch.topic)}</td><td>${r.attempts}</td><td>${r.hint ? 'Sim' : 'Não'}</td></tr>`;
+      }).join('');
+      show(`
+        <section class="card hero pop" aria-labelledby="end-title">
+          <div class="hero-icon" aria-hidden="true">🏆</div>
+          <h1 id="end-title">Mistério resolvido!</h1>
+          <div class="story">
+            <p>A taça estava no <strong>armário ${locker}</strong>! Dentro dela havia um bilhete do professor de Educação Física:</p>
+            <p><em>"Guardei a taça aqui para dar um polimento antes da festa. Quem conseguiu me encontrar sabe usar a Matemática como um verdadeiro detetive!"</em></p>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="perf-title">
+          <h2 id="perf-title">Resumo da investigação</h2>
+          <div class="hud">
+            <span class="pill">⭐ ${points} de ${maxScore()} pontos</span>
+            <span class="pill">🔁 ${totalWrong} erro(s) que viraram aprendizado</span>
+            <span class="pill">💡 ${hintsUsed} dica(s) usada(s)</span>
+          </div>
+          <div class="table-wrap">
+            <table class="summary-table">
+              <caption class="sr-only">Desempenho por sala</caption>
+              <thead><tr><th scope="col">Sala</th><th scope="col">Conteúdo</th><th scope="col">Tentativas</th><th scope="col">Usou dica?</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <p class="small muted" style="margin-top:8px">Pontos: ${POINTS_ROOM} por sala resolvida, +${POINTS_NO_HINT} por sala sem dica e +${POINTS_FINAL_FIRST_TRY} por achar o armário de primeira. Errar não tira pontos.</p>
+          <h3>Conquistas da equipe</h3>
+          <ul class="medals">${medalsFor(g, totalWrong, hintsUsed).map(([t, d]) => `<li><strong>${t}</strong><br><span class="small">${d}</span></li>`).join('')}</ul>
+          <p style="margin-top:12px"><strong>Para conversar:</strong> qual desafio fez a equipe pensar mais? Que estratégia ajudou?</p>
+          <div class="row">
+            <button type="button" class="btn btn-main" id="btn-again">🔁 Jogar de novo com outros desafios</button>
+            <button type="button" class="btn" id="btn-to-home">⌂ Voltar ao início</button>
+          </div>
+          <p class="privacy" style="margin-top:12px">🔒 Este resumo ficou salvo apenas neste navegador/aparelho.</p>
+        </section>
+      `);
+      document.getElementById('btn-again').addEventListener('click', () => startGame(g.grade, g));
+      document.getElementById('btn-to-home').addEventListener('click', () => { game = null; renderHome(); });
+      announce(`Mistério resolvido! A taça estava no armário ${locker}.`);
+    }
+
+    /* ==========================================================================
+       INÍCIO
+       ========================================================================== */
+    document.getElementById('btn-home').addEventListener('click', () => { saveGame(); game = null; renderHome(); });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      if (!game) return;
+      startGame(game.grade, game);
+      announce('Investigação reiniciada com novos desafios.');
+    });
+
+    [validateBank(), validateMysteries()].flat().forEach((p) => console.error('[Escape Room] Banco inválido:', p));
+    renderHome();
+  </script>
+</body>
+</html>

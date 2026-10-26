@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial · Escape Room Matemático</title>
+  <style>
+    :root {
+      --bg: #101a2e; --card: #fdf6e3; --ink: #1d2433; --soft: #4a5468; --line: #c9b98f;
+      --lamp: #ffcf4d; --lamp-dark: #b9860b; --teal: #1f8a8a; --ok-bg: #e2f5e8; --ok: #1d7a3e;
+      --err-bg: #fde7e5; --err: #b3261e; --info-bg: #e6eefc; --focus: #ff7a1a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; font-size: 1.05rem; line-height: 1.6; color: var(--ink);
+      background: radial-gradient(700px 420px at 85% -5%, rgba(255, 207, 77, 0.22), transparent 70%), var(--bg); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
+    h1, h2, h3 { font-family: Georgia, serif; line-height: 1.25; }
+    h1 { color: #fff; font-size: clamp(1.6rem, 5vw, 2.3rem); margin: 8px 0; }
+    .lead { color: #e7ecf5; }
+    .card { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-top: 16px; }
+    .card h2 { margin-top: 0; }
+    a { color: #0b4f8a; }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+    .btn { display: inline-block; min-height: 48px; padding: 12px 18px; border-radius: 12px; font-weight: 700; text-decoration: none;
+      background: var(--lamp); border: 2px solid var(--lamp-dark); color: var(--ink); }
+    .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.7); }
+    nav ol { columns: 2; padding-left: 20px; margin: 0; }
+    @media (max-width: 560px) { nav ol { columns: 1; } }
+    .steps { counter-reset: s; list-style: none; padding: 0; }
+    .steps > li { counter-increment: s; position: relative; padding: 10px 12px 10px 56px; margin-bottom: 10px; background: #fff; border-radius: 12px; border: 1px solid #e5dcc1; }
+    .steps > li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--teal); color: #fff; font-weight: 800; display: grid; place-items: center; }
+    .box { border-radius: 12px; padding: 10px 14px; margin: 10px 0; border: 2px solid; }
+    .ok { background: var(--ok-bg); border-color: var(--ok); }
+    .err { background: var(--err-bg); border-color: var(--err); }
+    .info { background: var(--info-bg); border-color: #3b5bab; }
+    .calc { font-family: Consolas, "Courier New", monospace; background: #fff; border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; display: block; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border-bottom: 1px solid #e5dcc1; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f0e6c8; }
+    .table-wrap { overflow-x: auto; }
+    kbd { background: #fff; border: 1px solid #999; border-bottom-width: 3px; border-radius: 6px; padding: 0 6px; font-family: inherit; }
+    details { background: #fff; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; border: 1px solid #e5dcc1; }
+    summary { font-weight: 700; cursor: pointer; min-height: 32px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p><a class="btn btn-ghost" href="index.html">← Voltar ao jogo</a></p>
+      <h1>🔦 Tutorial: Escape Room Matemático</h1>
+      <p class="lead">O Mistério da Escola: guia para alunos e professores, com um exemplo resolvido.</p>
+    </header>
+
+    <nav class="card" aria-labelledby="sumario">
+      <h2 id="sumario">Sumário</h2>
+      <ol>
+        <li><a href="#objetivo">Qual é o objetivo</a></li>
+        <li><a href="#preparar">Antes de começar</a></li>
+        <li><a href="#passos">Passo a passo</a></li>
+        <li><a href="#exemplo">Exemplo de uma sala</a></li>
+        <li><a href="#final">Como descobrir o armário</a></li>
+        <li><a href="#pontos">Pontos e conquistas</a></li>
+        <li><a href="#duvidas">Dúvidas comuns</a></li>
+        <li><a href="#professor">Para o professor</a></li>
+      </ol>
+    </nav>
+
+    <section class="card" id="objetivo" aria-labelledby="h-obj">
+      <h2 id="h-obj">1. Qual é o objetivo</h2>
+      <p>A <strong>Taça da Gincana</strong> sumiu e está escondida em um dos 8 armários do corredor. A equipe passa por <strong>4 salas</strong> (Biblioteca, Laboratório, Quadra e Sala da Direção). Em cada sala, resolve um desafio de Matemática e ganha uma <strong>pista</strong>.</p>
+      <p>No final, as 4 pistas juntas mostram qual é o armário certo. <strong>Não tem cronômetro</strong>: o importante é pensar, conversar e conferir.</p>
+    </section>
+
+    <section class="card" id="preparar" aria-labelledby="h-prep">
+      <h2 id="h-prep">2. Antes de começar</h2>
+      <ul>
+        <li><strong>Abrir:</strong> dê dois cliques no arquivo <code>index.html</code> desta pasta. Não precisa de internet.</li>
+        <li><strong>Equipe:</strong> de 3 a 5 alunos em um computador, ou a turma toda olhando a tela projetada.</li>
+        <li><strong>Material:</strong> caderno e lápis para fazer as contas e anotar as pistas.</li>
+        <li><strong>Papéis:</strong> em cada sala, o jogo sugere 3 papéis, que mudam de sala para sala:
+          <ul>
+            <li>📖 <strong>Leitor(a):</strong> lê o desafio em voz alta.</li>
+            <li>🧮 <strong>Calculista:</strong> resolve no caderno e explica o que fez.</li>
+            <li>✅ <strong>Conferente:</strong> confere a conta antes de a equipe enviar.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card" id="passos" aria-labelledby="h-passos">
+      <h2 id="h-passos">3. Passo a passo</h2>
+      <ol class="steps">
+        <li><strong>Tela inicial.</strong> Leiam a história e escolham o nível: <strong>Modo 6º ano</strong> ou <strong>Modo 7º ano</strong> (mais difícil). Cliquem em <strong>🔦 Começar investigação</strong>.</li>
+        <li><strong>Mapa das salas.</strong> No alto aparece o mapa: a sala atual mostra "➜ Investigando agora" e as concluídas mostram "✔ Pista encontrada".</li>
+        <li><strong>Leiam o desafio.</strong> Ele pode ser um <em>problema da escola</em> (com uma história) ou um <em>cálculo direto</em>.</li>
+        <li><strong>Respondam.</strong> Há dois tipos de resposta:
+          <ul>
+            <li><strong>Número:</strong> digitem no campo e cliquem em <strong>Conferir</strong> (ou apertem <kbd>Enter</kbd>). Usem vírgula nos decimais, como <code>1,75</code>, e o sinal de menos nos negativos, como <code>-6</code>.</li>
+            <li><strong>Alternativas:</strong> cliquem no botão da resposta escolhida.</li>
+          </ul>
+        </li>
+        <li><strong>Errou?</strong> O jogo mostra um jeito de pensar, sem dar a resposta. Conversem e tentem de novo. No <strong>2º erro</strong>, ele mostra a resolução completa e a equipe digita a resposta certa para continuar. Alternativa errada fica riscada (✖).</li>
+        <li><strong>Acertou?</strong> Aparecem a explicação, o <strong>conteúdo trabalhado</strong> (ex.: "Frações equivalentes") e a <strong>🧩 pista</strong>. Anotem a pista no caderno e cliquem em <strong>Ir para a próxima sala ➜</strong>.</li>
+        <li><strong>Dicas (opcional).</strong> O botão <strong>💡 Pedir uma dica</strong> dá uma ajuda para o desafio. A equipe tem <strong>3 dicas</strong> para o jogo todo. Quando acabam, ainda dá para continuar normalmente.</li>
+        <li><strong>Corredor dos armários.</strong> Depois da 4ª sala, usem as 4 pistas para escolher o armário certo (veja a <a href="#final">seção 5</a>).</li>
+        <li><strong>Resumo.</strong> O jogo revela o mistério e mostra os pontos, as tentativas, as dicas usadas e as conquistas da equipe. Dá para <strong>🔁 Jogar de novo com outros desafios</strong>.</li>
+      </ol>
+      <div class="box info">⌂ <strong>Voltar ao início</strong> e ↻ <strong>Reiniciar investigação</strong> ficam no alto da tela. Se fecharem o jogo no meio, a tela inicial oferece <strong>▶ Continuar investigação salva</strong>.</div>
+    </section>
+
+    <section class="card" id="exemplo" aria-labelledby="h-ex">
+      <h2 id="h-ex">4. Exemplo de uma sala (6º ano, Biblioteca)</h2>
+      <p><strong>Desafio:</strong> "Na prateleira, 2/3 dos livros são de aventura. Escreva uma fração equivalente a 2/3 com denominador 12. Qual é o numerador?"</p>
+      <p><strong>Como a equipe pode pensar:</strong> para chegar ao denominador 12, quanto multiplicamos o 3?</p>
+      <span class="calc">12 ÷ 3 = 4
+2 × 4 = 8   →   2/3 = 8/12</span>
+      <div class="box err"><strong>❌ Se digitarem 6:</strong> o jogo responde "Para ter uma fração equivalente, multiplique o numerador e o denominador pelo mesmo número. Conversem e tentem de novo!"</div>
+      <div class="box ok"><strong>✅ Ao digitar 8:</strong> aparecem a explicação, o conteúdo "Frações equivalentes" e a pista, por exemplo: "🧩 Pista 1: O número do armário é múltiplo de 3."</div>
+    </section>
+
+    <section class="card" id="final" aria-labelledby="h-final">
+      <h2 id="h-final">5. Como descobrir o armário</h2>
+      <p>No corredor há 8 armários numerados. Só <strong>um</strong> combina com <strong>todas</strong> as pistas. A estratégia é <strong>eliminar</strong>: testem uma pista por vez e risquem no caderno os armários que não servem.</p>
+      <p><strong>Exemplo</strong> com os armários 12, 18, 20, 24, 27, 30, 36 e 45:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Pista</th><th scope="col">Sobram</th></tr></thead>
+        <tbody>
+          <tr><td>1. É múltiplo de 3</td><td>12, 18, 24, 27, 30, 36, 45 (o 20 sai)</td></tr>
+          <tr><td>2. É par</td><td>12, 18, 24, 30, 36</td></tr>
+          <tr><td>3. É maior que 1/2 de 50 (= 25)</td><td>30, 36</td></tr>
+          <tr><td>4. É múltiplo de 4</td><td><strong>36</strong> ✔</td></tr>
+        </tbody>
+      </table></div>
+      <div class="box err"><strong>Se clicarem no armário errado,</strong> o jogo avisa que ele está vazio e diz <strong>quais pistas</strong> o número não cumpre. O armário fica marcado com ✖ e vocês tentam outro.</div>
+    </section>
+
+    <section class="card" id="pontos" aria-labelledby="h-pontos">
+      <h2 id="h-pontos">6. Pontos e conquistas</h2>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th scope="row">Cada sala resolvida</th><td>+10 pontos</td></tr>
+          <tr><th scope="row">Sala resolvida sem dica</th><td>+2 pontos</td></tr>
+          <tr><th scope="row">Armário certo na 1ª tentativa</th><td>+5 pontos</td></tr>
+          <tr><th scope="row">Errar</th><td>não tira pontos</td></tr>
+          <tr><th scope="row">Máximo</th><td>53 pontos</td></tr>
+        </tbody>
+      </table></div>
+      <p>As conquistas valorizam o jeito de jogar: <strong>💪 Persistência</strong> (errou e continuou), <strong>🤝 Saber pedir ajuda</strong> (usou dicas), <strong>🧠 Raciocínio independente</strong> (sem dicas), <strong>🔎 Lógica afiada</strong> e <strong>🗣️ Trabalho em equipe</strong>.</p>
+    </section>
+
+    <section class="card" id="duvidas" aria-labelledby="h-duvidas">
+      <h2 id="h-duvidas">7. Dúvidas comuns</h2>
+      <details><summary>Digitei a resposta certa e o jogo não aceitou.</summary><p>Confiram se usaram vírgula nos decimais (<code>0,3</code>) e não escreveram a unidade junto. A unidade (m, L, °C...) já aparece ao lado do campo.</p></details>
+      <details><summary>Acabaram as dicas. E agora?</summary><p>O jogo continua. Releiam o desafio, desenhem a situação e tentem. Se errarem duas vezes, aparece a resolução completa.</p></details>
+      <details><summary>Os desafios são sempre os mesmos?</summary><p>Não. Cada sala tem de 4 a 5 desafios no banco e há 3 mistérios finais por ano. Em "Jogar de novo", cada sala recebe um desafio diferente do anterior.</p></details>
+      <details><summary>Dá para jogar só com o teclado?</summary><p>Sim. Use <kbd>Tab</kbd> para passar pelos botões, <kbd>Enter</kbd> ou <kbd>Espaço</kbd> para clicar e as setas para escolher o nível na tela inicial.</p></details>
+      <details><summary>O jogo guarda o nome dos alunos?</summary><p>Não. Ele não pede nenhum dado pessoal. O progresso fica salvo só neste navegador, neste aparelho, e pode ser apagado pelo botão "🗑 Apagar progresso salvo neste aparelho" na tela inicial.</p></details>
+    </section>
+
+    <section class="card" id="professor" aria-labelledby="h-prof">
+      <h2 id="h-prof">8. Para o professor</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Sala</th><th scope="col">6º ano</th><th scope="col">7º ano</th></tr></thead>
+        <tbody>
+          <tr><td>📚 Biblioteca</td><td>Frações equivalentes e comparação</td><td>Razão e proporção</td></tr>
+          <tr><td>🧪 Laboratório</td><td>Operações com decimais</td><td>Números inteiros</td></tr>
+          <tr><td>🏀 Quadra</td><td>Perímetro e área</td><td>Porcentagem</td></tr>
+          <tr><td>🗝️ Direção</td><td>Múltiplos e divisores</td><td>Equações de uma etapa</td></tr>
+          <tr><td>🧩 Armários</td><td colspan="2">Raciocínio lógico com propriedades dos números</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><strong>Tempo aproximado:</strong> de 25 a 40 minutos por partida.</li>
+        <li><strong>Projetor:</strong> use <kbd>F11</kbd> para a tela cheia. Peça que as equipes respondam no caderno antes de alguém digitar.</li>
+        <li><strong>Para conversar no fim:</strong> "Qual desafio fez a equipe pensar mais?" e "Que estratégia ajudou a achar o armário?".</li>
+        <li><strong>Vários computadores:</strong> cada equipe joga no seu. O progresso de um não aparece no outro.</li>
+      </ul>
+      <p><a class="btn" href="index.html">▶ Abrir o jogo</a></p>
+    </section>
+  </div>
+</body>
+</html>

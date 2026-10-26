@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feira das Boas Escolhas · Matemática</title>
+  <meta name="description" content="Jogo educativo de Matemática para 6º e 7º ano: administrem uma barraca de feira calculando preços, troco, descontos e lucro.">
+  <style>
+    /* ==========================================================================
+       TOKENS — tema "barraca de feira"
+       ========================================================================== */
+    :root {
+      --kraft: #f6ead2;
+      --kraft-2: #ecd9b4;
+      --wood: #8a5a2b;
+      --wood-dark: #5e3a17;
+      --awning: #d62839;
+      --leaf: #2d6a4f;
+      --leaf-2: #40916c;
+      --ink: #2b1d0e;
+      --ink-soft: #5c4a36;
+      --paper: #fffdf7;
+      --ok: #1d6b3a;
+      --ok-bg: #e2f4e6;
+      --err: #a4161a;
+      --err-bg: #fde6e4;
+      --info-bg: #fff3c4;
+      --focus: #0057d9;
+      --radius: 14px;
+      --font: "Verdana", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-title: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--font); font-size: 1rem; line-height: 1.5; color: var(--ink);
+      background: var(--kraft);
+      background-image: radial-gradient(rgba(138, 90, 43, 0.08) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+    .awning {
+      height: 34px;
+      background: repeating-linear-gradient(90deg, var(--awning) 0 40px, #fff 40px 80px);
+      border-bottom: 4px solid var(--wood-dark);
+      -webkit-mask: radial-gradient(circle at 20px 34px, transparent 12px, #000 13px) 0 0 / 40px 34px;
+      mask: radial-gradient(circle at 20px 34px, transparent 12px, #000 13px) 0 0 / 40px 34px;
+    }
+    h1, h2, h3 { font-family: var(--font-title); line-height: 1.2; margin: 0 0 0.5rem; }
+    p { margin: 0 0 0.7rem; }
+    button, input { font: inherit; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; }
+
+    .app { max-width: 1180px; margin: 0 auto; padding: 12px 16px 40px; }
+    .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .brand { font-family: var(--font-title); font-weight: 800; font-size: 1.25rem; color: var(--wood-dark); display: flex; gap: 8px; align-items: center; }
+    .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .card { background: var(--paper); border: 2px solid var(--kraft-2); border-radius: var(--radius); padding: 16px; box-shadow: 0 6px 0 var(--kraft-2); }
+    .card + .card { margin-top: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 8px 16px;
+      border-radius: 12px; border: 2px solid var(--wood); background: #fff; color: var(--wood-dark); font-weight: 700; cursor: pointer;
+    }
+    .btn:hover { background: #fff6e6; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-main { background: var(--leaf); border-color: #1b4332; color: #fff; box-shadow: 0 3px 0 #1b4332; }
+    .btn-main:hover { background: var(--leaf-2); }
+    .btn-small { min-height: 40px; padding: 6px 12px; font-size: 0.92rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .muted { color: var(--ink-soft); }
+    .small { font-size: 0.9rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .hero { text-align: center; }
+    .hero h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); color: var(--awning); }
+    .fruits { font-size: 2.4rem; letter-spacing: 4px; }
+    .instructions li { margin-bottom: 6px; }
+    .grade-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; border: 0; padding: 0; margin: 12px 0; }
+    .grade-picker legend { font-weight: 700; padding: 0; margin-bottom: 8px; }
+    .grade-option { position: relative; }
+    .grade-option input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
+    .grade-option label { display: block; height: 100%; padding: 14px; border: 3px solid var(--kraft-2); border-radius: 12px; background: #fff; cursor: pointer; }
+    .grade-option input:checked + label { border-color: var(--leaf); background: #eaf6ee; }
+    .grade-option input:checked + label .check::before { content: "✔ Selecionado"; }
+    .grade-option input:focus-visible + label { outline: 4px solid var(--focus); outline-offset: 2px; }
+    .check { display: block; min-height: 1.4em; font-weight: 700; color: var(--leaf); }
+    .privacy { background: #e8f1ff; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; }
+    .history { padding-left: 20px; font-size: 0.92rem; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .stat { background: #fff; border: 2px solid var(--kraft-2); border-radius: 12px; padding: 8px 12px; }
+    .stat b { display: block; font-size: 1.15rem; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 14px; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: #fff; }
+    th, td { padding: 6px 8px; border-bottom: 1px solid #eadcc2; text-align: left; }
+    th { background: #f6ead2; }
+    td.num, th.num { text-align: right; white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+    .promo-tag { display: inline-block; background: var(--awning); color: #fff; border-radius: 6px; padding: 0 6px; font-size: 0.8rem; font-weight: 700; }
+    s { color: var(--ink-soft); }
+
+    .client-head { display: flex; gap: 12px; align-items: center; }
+    .avatar { font-size: 2.8rem; background: #fff3d6; border-radius: 50%; width: 70px; height: 70px; display: grid; place-items: center; flex: none; }
+    .speech { background: #fff; border: 2px solid var(--wood); border-radius: 14px; padding: 12px 14px; position: relative; margin: 10px 0; font-size: 1.08rem; }
+    .rule { background: var(--info-bg); border-left: 6px solid #e0a800; border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: 0.95rem; }
+    .steps { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 8px 0 12px; list-style: none; }
+    .steps li { border: 2px solid var(--kraft-2); border-radius: 999px; padding: 2px 10px; font-size: 0.85rem; background: #fff; }
+    .steps li.now { border-color: var(--wood); font-weight: 700; }
+    .steps li.done { border-color: var(--ok); background: var(--ok-bg); }
+    .steps li.done::before { content: "✔ "; }
+    .steps li.now::before { content: "➜ "; }
+
+    .picker { display: grid; gap: 8px; }
+    .pick-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; background: #fff; border: 2px solid var(--kraft-2); border-radius: 12px; padding: 6px 10px; }
+    .pick-row.has { border-color: var(--leaf); background: #f0faf3; }
+    .qty { display: flex; align-items: center; gap: 6px; }
+    .qty output { min-width: 2.2em; text-align: center; font-weight: 800; font-size: 1.2rem; }
+    .qty .btn { min-width: 46px; padding: 6px; font-size: 1.3rem; }
+
+    .answer-input { min-height: 48px; width: 170px; max-width: 100%; padding: 6px 10px; border: 2px solid var(--ink); border-radius: 10px; font-size: 1.2rem; }
+    .ask label { display: block; font-weight: 700; margin-bottom: 6px; }
+    .feedback { border-radius: 10px; padding: 10px 12px; margin-top: 10px; border: 2px solid; }
+    .feedback.ok { background: var(--ok-bg); border-color: var(--ok); }
+    .feedback.err { background: var(--err-bg); border-color: var(--err); }
+    .feedback.info { background: #eef4ff; border-color: #4a6fb5; }
+    .calc { font-family: Consolas, "Courier New", monospace; background: #f7f1e3; border-radius: 8px; padding: 6px 10px; display: block; margin-top: 6px; white-space: pre-wrap; }
+    .receipt { background: #fff; border: 2px dashed var(--wood); border-radius: 10px; padding: 10px 14px; font-family: Consolas, "Courier New", monospace; white-space: pre-wrap; font-size: 0.92rem; }
+
+    @media (max-width: 560px) { .answer-input { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="awning" aria-hidden="true"></div>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span aria-hidden="true">🧺</span> Feira das Boas Escolhas</div>
+      <nav class="topbar-actions" aria-label="Ações do jogo">
+        <button type="button" class="btn btn-small" id="btn-restart" hidden>↻ Reiniciar rodada</button>
+        <button type="button" class="btn btn-small" id="btn-home" hidden>⌂ Voltar ao início</button>
+      </nav>
+    </header>
+    <main id="screen" tabindex="-1"></main>
+    <div class="sr-only" aria-live="polite" id="live"></div>
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ==========================================================================
+       CONFIGURAÇÃO — todos os valores de dinheiro em CENTAVOS (inteiros)
+       ========================================================================== */
+    const STORAGE_KEY = 'mat-feira-boas-escolhas-v1';
+    const START_CASH = 5000;
+    const NOTES = [200, 500, 1000, 2000, 5000, 10000];
+
+    const PRODUCTS = {
+      maca:    { name: 'Maçã',    plural: 'maçãs',    emoji: '🍎', unit: 'unidade', price: 150, cost: 90,  stock: 20 },
+      banana:  { name: 'Banana',  plural: 'bananas',  emoji: '🍌', unit: 'unidade', price: 80,  cost: 45,  stock: 24 },
+      laranja: { name: 'Laranja', plural: 'laranjas', emoji: '🍊', unit: 'unidade', price: 75,  cost: 40,  stock: 30 },
+      abacaxi: { name: 'Abacaxi', plural: 'abacaxis', emoji: '🍍', unit: 'unidade', price: 650, cost: 400, stock: 5 },
+      alface:  { name: 'Alface',  plural: 'pés de alface', emoji: '🥬', unit: 'pé', price: 325, cost: 180, stock: 8 },
+      ovo:     { name: 'Ovo',     plural: 'ovos',     emoji: '🥚', unit: 'unidade', price: 60,  cost: 35,  stock: 36 }
+    };
+    const JUICE = { name: 'Suco de laranja', plural: 'copos de suco', emoji: '🧃', unit: 'copo', price: 450, orangesPerCup: 3 };
+    const BASE_ORDER = ['maca', 'banana', 'laranja', 'abacaxi', 'alface', 'ovo'];
+
+    const CLIENTS = [
+      ['Dona Lúcia', '👵'], ['Seu Antônio', '👴'], ['Marina', '👩'], ['Pedro', '👦'], ['Dona Cida', '👩‍🦱'],
+      ['Rafael', '🧔'], ['Vó Tereza', '👵🏽'], ['Júlia', '👧'], ['Seu Zé', '👨‍🦳'], ['Camila', '👩🏾']
+    ];
+
+    const TIMELINE = {
+      6: ['simples', 'fracao', 'cartao', 'EV:promo', 'simples', 'estoque', 'fracao', 'EV:repo', 'cartao', 'simples'],
+      7: ['lucro', 'receita', 'oferta', 'EV:promo', 'desconto', 'credito', 'simples', 'EV:repo', 'desconto', 'credito']
+    };
+
+    /* ==========================================================================
+       UTILITÁRIOS
+       ========================================================================== */
+    function brl(cents) {
+      const sign = cents < 0 ? '−' : '';
+      return `${sign}R$ ${(Math.abs(cents) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    function dec(cents) {
+      return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    /** "R$ 12,50", "12,5", "12.50", "12" → centavos. Devolve NaN se inválido ou com mais de 2 casas. */
+    function parseMoney(raw) {
+      let text = String(raw).trim().replace(/\s+/g, '').replace(/^R\$/i, '');
+      if (text.includes(',') && text.includes('.')) text = text.replace(/\./g, '');
+      text = text.replace(',', '.');
+      if (!/^\d+(\.\d{1,2})?$/.test(text)) return NaN;
+      return Math.round(Number(text) * 100);
+    }
+    function parseCount(raw) {
+      const text = String(raw).trim();
+      return /^\d+$/.test(text) ? Number(text) : NaN;
+    }
+    function randInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+    function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+    function shuffle(list) {
+      const a = list.slice();
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+    function announce(message) {
+      const live = document.getElementById('live');
+      live.textContent = '';
+      setTimeout(() => { live.textContent = message; }, 30);
+    }
+    function productInfo(id) { return id === 'suco' ? JUICE : PRODUCTS[id]; }
+    function qtyText(id, qty) { const p = productInfo(id); return `${qty} ${qty === 1 ? p.name.toLowerCase() : p.plural}`; }
+
+    /* ==========================================================================
+       ESTADO E ARMAZENAMENTO
+       ========================================================================== */
+    function defaultSave() { return { grade: 6, current: null, history: [], completed: 0 }; }
+    function loadSave() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (data && typeof data === 'object') return Object.assign(defaultSave(), data);
+      } catch (e) { /* armazenamento indisponível */ }
+      return defaultSave();
+    }
+    function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); } catch (e) { /* segue sem salvar */ } }
+
+    let save = loadSave();
+    let st = null; // estado da rodada
+
+    function newRound(grade) {
+      const stock = {};
+      BASE_ORDER.forEach((id) => { stock[id] = PRODUCTS[id].stock; });
+      const initialCost = BASE_ORDER.reduce((s, id) => s + PRODUCTS[id].stock * PRODUCTS[id].cost, 0);
+      return {
+        grade, pos: 0, stock, cash: START_CASH, initialCost,
+        restocks: [], promo: null, sales: [], skipped: [],
+        stats: { steps: 0, firstTry: 0, helped: 0 },
+        names: shuffle(CLIENTS),
+        current: null, finished: false
+      };
+    }
+    function saveRound() { save.current = st && !st.finished ? st : null; persist(); }
+
+    /* ==========================================================================
+       PREÇOS
+       ========================================================================== */
+    function unitPrice(id, client) {
+      if (client && client.priceOverride && client.priceOverride[id] !== undefined) return client.priceOverride[id];
+      if (id === 'suco') return JUICE.price;
+      if (st.promo && st.promo.product === id) return st.promo.price;
+      return PRODUCTS[id].price;
+    }
+    function unitCost(id) { return id === 'suco' ? JUICE.orangesPerCup * PRODUCTS.laranja.cost : PRODUCTS[id].cost; }
+    /** Quantas unidades ainda podem entrar no carrinho, sem deixar estoque negativo. */
+    function available(id, cart) {
+      const usedOranges = (cart.laranja || 0) + (cart.suco || 0) * JUICE.orangesPerCup;
+      if (id === 'suco') return Math.floor((st.stock.laranja - usedOranges) / JUICE.orangesPerCup);
+      if (id === 'laranja') return st.stock.laranja - usedOranges;
+      return st.stock[id] - (cart[id] || 0);
+    }
+    function inStock(minQty) { return BASE_ORDER.filter((id) => st.stock[id] >= (minQty || 1)); }
+    function subtotalOf(lines, client) { return lines.reduce((s, l) => s + l.qty * unitPrice(l.product, client), 0); }
+    function sumCalc(lines, client) {
+      return lines.map((l) => `${l.qty} × ${dec(unitPrice(l.product, client))} = ${dec(l.qty * unitPrice(l.product, client))}`).join('\n');
+    }
+    function cashNote(total) {
+      const options = NOTES.filter((n) => n > total);
+      if (!options.length) return null;
+      return Math.random() < 0.5 && options[1] ? options[1] : options[0];
+    }
+
+    /* ==========================================================================
+       GERADORES DE CLIENTES — usam o estoque atual e só aceitam valores com
+       centavos exatos. Cada cliente tem uma lista de etapas (steps).
+       ========================================================================== */
+    function baseLines(count, maxQty, exclude) {
+      const ids = shuffle(inStock().filter((id) => !(exclude || []).includes(id))).slice(0, count);
+      return ids.map((id) => ({ product: id, qty: randInt(1, Math.min(maxQty, st.stock[id])), asked: null }));
+    }
+    function lineText(l) {
+      return l.asked || qtyText(l.product, l.qty);
+    }
+    function orderText(lines) {
+      const parts = lines.map(lineText);
+      return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' e ' + parts[parts.length - 1] : parts[0];
+    }
+
+    function stepSelect(lines, explainExtra) {
+      const expected = {};
+      lines.forEach((l) => { expected[l.product] = l.qty; });
+      return { id: 'select', label: 'Separar itens', expected, explain: explainExtra || '' };
+    }
+    function stepMoney(id, label, prompt, answer, calc, method) {
+      return { id, label, kind: 'money', prompt, answer, calc, method };
+    }
+    function stepTotal(lines, client, label) {
+      const total = subtotalOf(lines, client);
+      return stepMoney('total', label || 'Valor total', 'Qual é o valor total da compra?', total,
+        sumCalc(lines, client) + (lines.length > 1 ? `\nTotal: ${lines.map((l) => dec(l.qty * unitPrice(l.product, client))).join(' + ')} = ${dec(total)}` : ''),
+        'Multipliquem a quantidade pelo preço de cada unidade e depois somem os valores.');
+    }
+    function stepChange(total, paid) {
+      return stepMoney('troco', 'Troco', `O cliente pagou com ${brl(paid)}. Qual é o troco?`, paid - total,
+        `${dec(paid)} − ${dec(total)} = ${dec(paid - total)}`,
+        'Troco = valor pago − valor da compra. Dica: completem de quanto em quanto até chegar no valor pago.');
+    }
+    function finishClient(client, lines, total, payMethod, paid) {
+      client.lines = lines;
+      client.total = total;
+      client.method = payMethod;
+      client.paid = paid || total;
+      client.cost = lines.reduce((s, l) => s + l.qty * unitCost(l.product), 0);
+      if (payMethod === 'dinheiro') client.steps.push(stepChange(total, paid));
+      return client;
+    }
+    function payText(method, paid) {
+      if (method === 'dinheiro') return `Vou pagar com uma nota de ${brl(paid)}.`;
+      if (method === 'pix') return 'Vou pagar no Pix, o valor exato.';
+      if (method === 'debito') return 'Vou pagar no cartão de débito, o valor exato.';
+      return 'Vou pagar no cartão de crédito.';
+    }
+
+    const GENERATORS = {
+      simples(client) {
+        const lines = baseLines(2, 4);
+        const total = subtotalOf(lines, client);
+        const paid = cashNote(total);
+        client.speech = `Bom dia! Quero ${orderText(lines)}. ${payText('dinheiro', paid)}`;
+        client.steps = [stepSelect(lines), stepTotal(lines, client)];
+        return finishClient(client, lines, total, 'dinheiro', paid);
+      },
+      fracao(client) {
+        const fractions = shuffle([[1, 4], [1, 3], [1, 2], [2, 3], [3, 4]]);
+        const ids = shuffle(['ovo', 'banana', 'laranja']);
+        let line = null;
+        for (const id of ids) {
+          const f = fractions.find(([n, d]) => (12 / d) * n <= st.stock[id]);
+          if (f) {
+            const qty = (12 / f[1]) * f[0];
+            line = { product: id, qty, asked: `${f[0]}/${f[1]} de uma dúzia de ${PRODUCTS[id].plural}`, frac: f };
+            break;
+          }
+        }
+        if (!line) return GENERATORS.simples(client);
+        const lines = [line].concat(baseLines(1, 3, [line.product]));
+        const [n, d] = line.frac;
+        const explain = `1 dúzia = 12. ${n}/${d} de 12 = 12 ÷ ${d} × ${n} = ${line.qty} ${PRODUCTS[line.product].plural}.`;
+        const total = subtotalOf(lines, client);
+        const paid = cashNote(total);
+        client.speech = `Olá! Quero ${orderText(lines)}. ${payText('dinheiro', paid)}`;
+        client.rule = 'Lembrete: 1 dúzia = 12 unidades.';
+        client.steps = [stepSelect(lines, explain), stepTotal(lines, client)];
+        return finishClient(client, lines, total, 'dinheiro', paid);
+      },
+      cartao(client) {
+        const lines = baseLines(randInt(1, 3), 3);
+        const total = subtotalOf(lines, client);
+        const method = pick(['debito', 'pix']);
+        client.speech = `Oi! Vou levar ${orderText(lines)}. ${payText(method)}`;
+        client.steps = [stepSelect(lines), stepTotal(lines, client)];
+        return finishClient(client, lines, total, method);
+      },
+      estoque(client) {
+        const options = inStock().sort((a, b) => st.stock[a] - st.stock[b]);
+        const id = options[0];
+        const have = st.stock[id];
+        const asked = have + randInt(1, 3);
+        const line = { product: id, qty: have, asked: `${asked} ${PRODUCTS[id].plural}` };
+        const lines = [line].concat(baseLines(1, 3, [id]));
+        const total = subtotalOf(lines, client);
+        const paid = cashNote(total);
+        client.speech = `Quero ${orderText(lines)}. Se não tiver tudo isso, levo o que tiver! ${payText('dinheiro', paid)}`;
+        client.rule = 'Confiram a tabela de estoque antes de separar os itens. Não dá para vender mais do que existe.';
+        client.steps = [stepSelect(lines, `O cliente pediu ${asked}, mas só há ${have} no estoque. Vendemos ${have}: o estoque não pode ficar negativo.`), stepTotal(lines, client)];
+        return finishClient(client, lines, total, 'dinheiro', paid);
+      },
+      lucro(client) {
+        GENERATORS.simples(client);
+        const profit = client.total - client.cost;
+        client.steps.push(stepMoney('lucro', 'Lucro da venda', 'Usando a coluna "Custo" da tabela, qual foi o lucro desta venda? (lucro = valor vendido − custo dos produtos)', profit,
+          client.lines.map((l) => `Custo: ${l.qty} × ${dec(unitCost(l.product))} = ${dec(l.qty * unitCost(l.product))}`).join('\n') +
+          `\nCusto total: ${dec(client.cost)}\nLucro: ${dec(client.total)} − ${dec(client.cost)} = ${dec(profit)}`,
+          'Calculem quanto a barraca pagou pelos produtos (custo) e subtraiam do valor da venda. O troco não entra nessa conta.'));
+        return client;
+      },
+      receita(client) {
+        const maxCups = Math.min(4, available('suco', {}));
+        if (maxCups < 2) return GENERATORS.lucro(client);
+        const cups = randInt(2, maxCups);
+        const lines = [{ product: 'suco', qty: cups, asked: `${cups} copos de suco de laranja` }];
+        const total = subtotalOf(lines, client);
+        const paid = cashNote(total);
+        client.speech = `Que calor! Quero ${cups} copos de suco de laranja. ${payText('dinheiro', paid)}`;
+        client.rule = `Receita da barraca: cada copo de suco leva ${JUICE.orangesPerCup} laranjas (razão 3 laranjas : 1 copo). As laranjas saem do estoque.`;
+        client.steps = [
+          stepSelect(lines),
+          { id: 'laranjas', label: 'Laranjas usadas', kind: 'count', prompt: `Quantas laranjas serão usadas para fazer ${cups} copos?`, answer: cups * 3,
+            calc: `3 laranjas : 1 copo = ? laranjas : ${cups} copos\n${cups} × 3 = ${cups * 3} laranjas`, method: 'Na proporção, se os copos são multiplicados por um número, as laranjas também são.' },
+          stepTotal(lines, client)
+        ];
+        return finishClient(client, lines, total, 'dinheiro', paid);
+      },
+      oferta(client) {
+        const offers = [
+          { product: 'maca', pack: 3, packPrice: 420 },
+          { product: 'banana', pack: 4, packPrice: 280 },
+          { product: 'laranja', pack: 6, packPrice: 420 },
+          { product: 'ovo', pack: 12, packPrice: 780 }
+        ];
+        const offer = shuffle(offers).find((o) => available(o.product, {}) >= o.pack);
+        if (!offer) return GENERATORS.lucro(client);
+        const p = PRODUCTS[offer.product];
+        const packs = available(offer.product, {}) >= offer.pack * 2 ? 2 : 1;
+        const qty = offer.pack * packs;
+        const single = qty * p.price;
+        const packTotal = packs * offer.packPrice;
+        const packWins = packTotal < single;
+        const answer = packWins ? 'Pacote' : 'Avulso (por unidade)';
+        if (packWins) client.priceOverride = { [offer.product]: offer.packPrice / offer.pack };
+        const lines = [{ product: offer.product, qty, asked: `${qty} ${p.plural}` }];
+        const total = packWins ? packTotal : single;
+        client.speech = `Quero ${qty} ${p.plural}. O que sai mais barato: o pacote com ${offer.pack} por ${brl(offer.packPrice)} ou comprar avulso a ${brl(p.price)} cada? Quero a opção mais barata. ${payText('pix')}`;
+        client.rule = `Oferta do dia: pacote com ${offer.pack} ${p.plural} por ${brl(offer.packPrice)}.`;
+        client.steps = [
+          stepSelect(lines),
+          { id: 'oferta', label: 'Comparar ofertas', kind: 'choice', prompt: `Para ${qty} ${p.plural}, qual opção é mais barata?`,
+            options: ['Pacote', 'Avulso (por unidade)', 'Custam o mesmo'], answer,
+            calc: `Avulso: ${qty} × ${dec(p.price)} = ${dec(single)}\nPacote: ${packs} × ${dec(offer.packPrice)} = ${dec(packTotal)}\nMais barato: ${answer}`,
+            method: 'Calculem quanto custaria de cada jeito para a mesma quantidade e comparem.' },
+          stepMoney('total', 'Valor total', 'Com a opção mais barata, qual é o valor total?', total,
+            packWins ? `${packs} pacote(s) × ${dec(offer.packPrice)} = ${dec(total)}` : `${qty} × ${dec(p.price)} = ${dec(total)}`,
+            'Usem o preço da opção que vocês escolheram como mais barata.')
+        ];
+        return finishClient(client, lines, total, 'pix');
+      },
+      desconto(client) {
+        if (st.promo && st.promo.pct && available(st.promo.product, {}) >= 1) {
+          const id = st.promo.product;
+          const promoLine = { product: id, qty: randInt(1, Math.min(3, st.stock[id])), asked: null };
+          const lines = [promoLine].concat(baseLines(1, 3, [id]));
+          const total = subtotalOf(lines, client);
+          const paid = cashNote(total);
+          client.speech = `Vi a promoção! Quero ${orderText(lines)}. ${payText('dinheiro', paid)}`;
+          client.rule = `Promoção: ${PRODUCTS[id].name} com ${st.promo.pct}% de desconto. O desconto é aplicado no preço de cada unidade ANTES de multiplicar pela quantidade: ${brl(PRODUCTS[id].price)} → ${brl(st.promo.price)}.`;
+          client.steps = [stepSelect(lines), stepTotal(lines, client)];
+          return finishClient(client, lines, total, 'dinheiro', paid);
+        }
+        for (let tries = 0; tries < 200; tries++) {
+          const lines = baseLines(2, 4);
+          const sub = subtotalOf(lines, client);
+          if (sub % 10 !== 0) continue;
+          const discount = sub / 10;
+          const total = sub - discount;
+          const paid = cashNote(total);
+          client.speech = `Tenho um cupom de 10% de desconto! Quero ${orderText(lines)}. ${payText('dinheiro', paid)}`;
+          client.rule = 'Cupom de 10%: primeiro somem todos os itens; o desconto é aplicado DEPOIS, sobre o total da compra.';
+          client.steps = [
+            stepSelect(lines),
+            stepMoney('subtotal', 'Total sem desconto', 'Qual é o total ANTES do desconto?', sub, sumCalc(lines, client) + `\nSoma: ${dec(sub)}`, 'Multipliquem quantidade × preço de cada item e somem.'),
+            stepMoney('total', 'Total com desconto', 'Aplicando o cupom de 10%, qual é o valor a pagar?', total,
+              `10% de ${dec(sub)} = ${dec(sub)} ÷ 10 = ${dec(discount)}\n${dec(sub)} − ${dec(discount)} = ${dec(total)}`,
+              'Calculem 10% do total (dividam por 10) e subtraiam do total.')
+          ];
+          return finishClient(client, lines, total, 'dinheiro', paid);
+        }
+        return GENERATORS.simples(client);
+      },
+      credito(client) {
+        for (let tries = 0; tries < 300; tries++) {
+          const lines = baseLines(randInt(1, 2), 4);
+          const sub = subtotalOf(lines, client);
+          if (sub % 20 !== 0) continue;
+          const extra = sub / 20;
+          const total = sub + extra;
+          client.speech = `Quero ${orderText(lines)}. ${payText('credito')}`;
+          client.rule = 'No cartão de crédito há acréscimo de 5%. Primeiro somem os itens; o acréscimo é calculado DEPOIS, sobre o total.';
+          client.steps = [
+            stepSelect(lines),
+            stepMoney('subtotal', 'Total sem acréscimo', 'Qual é o total ANTES do acréscimo?', sub, sumCalc(lines, client) + `\nSoma: ${dec(sub)}`, 'Multipliquem quantidade × preço de cada item e somem.'),
+            stepMoney('total', 'Total com acréscimo', 'Com o acréscimo de 5%, qual é o valor cobrado no cartão?', total,
+              `5% de ${dec(sub)} = ${dec(sub)} × 5 ÷ 100 = ${dec(extra)}\n${dec(sub)} + ${dec(extra)} = ${dec(total)}`,
+              '5% é a metade de 10%. Calculem 10% (dividam por 10), depois a metade, e somem ao total.')
+          ];
+          return finishClient(client, lines, total, 'credito');
+        }
+        return GENERATORS.cartao(client);
+      }
+    };
+
+    function makeClient(kind, index) {
+      const [name, avatar] = st.names[index % st.names.length];
+      const client = { type: 'client', kind, name, avatar, steps: [], step: 0, tries: 0, cart: {}, rule: '' };
+      return GENERATORS[kind](client);
+    }
+
+    /** Confere se o cliente gerado é matematicamente válido. */
+    function validateClient(c) {
+      const problems = [];
+      if (!Number.isInteger(c.total) || c.total <= 0) problems.push('total inválido');
+      if (c.method === 'dinheiro' && !(c.paid > c.total)) problems.push('pagamento menor que o total');
+      const cart = {};
+      c.lines.forEach((l) => {
+        if (l.qty <= 0) problems.push('quantidade zero');
+        cart[l.product] = (cart[l.product] || 0) + l.qty;
+      });
+      Object.keys(cart).forEach((id) => {
+        const need = id === 'suco' ? cart[id] * JUICE.orangesPerCup + (cart.laranja || 0) : id === 'laranja' ? cart[id] + (cart.suco || 0) * JUICE.orangesPerCup : cart[id];
+        const have = id === 'suco' || id === 'laranja' ? st.stock.laranja : st.stock[id];
+        if (need > have) problems.push(`estoque insuficiente de ${id}`);
+      });
+      c.steps.forEach((s) => {
+        if (s.kind === 'money' && !Number.isInteger(s.answer)) problems.push(`etapa ${s.id} com centavos não exatos`);
+        if (s.kind === 'choice' && !s.options.includes(s.answer)) problems.push(`etapa ${s.id} sem resposta nas opções`);
+      });
+      const totalStep = c.steps.find((s) => s.id === 'total');
+      if (!totalStep || totalStep.answer !== c.total) problems.push('etapa de total diferente do total do cliente');
+      return problems;
+    }
+
+    /* ---------- Eventos ---------- */
+    function makePromo() {
+      const id = ['alface', 'abacaxi', 'maca'].filter((p) => st.stock[p] > 0).sort((a, b) => st.stock[b] - st.stock[a])[0] || 'maca';
+      const p = PRODUCTS[id];
+      if (st.grade === 7) {
+        const pct = 20;
+        const price = p.price - p.price * pct / 100;
+        return { type: 'event', kind: 'promo', product: id, price, pct, step: 0, tries: 0,
+          title: '🏷️ Promoção relâmpago!',
+          text: `A barraca quer vender mais ${p.plural}. A proposta é dar ${pct}% de desconto no preço de cada unidade (${brl(p.price)}).`,
+          ask: stepMoney('preco', 'Novo preço', `Com ${pct}% de desconto, qual será o novo preço de cada ${p.unit}?`, price,
+            `${pct}% de ${dec(p.price)} = ${dec(p.price)} × ${pct} ÷ 100 = ${dec(p.price * pct / 100)}\n${dec(p.price)} − ${dec(p.price * pct / 100)} = ${dec(price)}`,
+            'Calculem o valor do desconto (porcentagem do preço) e subtraiam do preço original.'),
+          acceptLabel: '✅ Fazer a promoção', skipLabel: 'Não fazer promoção agora' };
+      }
+      const price = p.price - 50;
+      return { type: 'event', kind: 'promo', product: id, price, step: 0, tries: 0,
+        title: '🏷️ Promoção relâmpago!',
+        text: `A barraca quer vender mais ${p.plural}. A proposta é baixar R$ 0,50 no preço de cada ${p.unit} (hoje custa ${brl(p.price)}).`,
+        ask: stepMoney('preco', 'Novo preço', `Qual será o novo preço de cada ${p.unit}?`, price, `${dec(p.price)} − 0,50 = ${dec(price)}`,
+          'Subtraiam R$ 0,50 do preço atual, alinhando as vírgulas.'),
+        acceptLabel: '✅ Fazer a promoção', skipLabel: 'Não fazer promoção agora' };
+    }
+    function makeRestock() {
+      const id = BASE_ORDER.slice().sort((a, b) => st.stock[a] / PRODUCTS[a].stock - st.stock[b] / PRODUCTS[b].stock)[0];
+      const p = PRODUCTS[id];
+      const qty = id === 'abacaxi' ? 4 : id === 'alface' ? 5 : 10;
+      const cost = qty * p.cost;
+      return { type: 'event', kind: 'repo', product: id, qty, cost, step: 0, tries: 0,
+        title: '🚚 O fornecedor passou!',
+        text: `O estoque de ${p.plural} está baixo (restam ${st.stock[id]}). O fornecedor oferece ${qty} ${p.plural} por ${brl(p.cost)} cada. O pagamento sai do caixa.`,
+        ask: stepMoney('custo', 'Custo da reposição', `Quanto custa comprar ${qty} ${p.plural}?`, cost, `${qty} × ${dec(p.cost)} = ${dec(cost)}`,
+          'Multipliquem a quantidade pelo preço de custo de cada unidade.'),
+        acceptLabel: '✅ Comprar a reposição', skipLabel: 'Não comprar agora' };
+    }
+
+    function loadCurrent() {
+      const entry = TIMELINE[st.grade][st.pos];
+      if (!entry) { st.current = null; return; }
+      if (entry === 'EV:promo') st.current = makePromo();
+      else if (entry === 'EV:repo') st.current = makeRestock();
+      else {
+        const clientNumber = TIMELINE[st.grade].slice(0, st.pos).filter((e) => !e.startsWith('EV')).length;
+        st.current = makeClient(entry, clientNumber);
+        validateClient(st.current).forEach((p) => console.error('[Feira] Cliente inválido:', p, st.current));
+      }
+    }
+    function clientCount() { return TIMELINE[st.grade].filter((e) => !e.startsWith('EV')).length; }
+
+    /* ==========================================================================
+       RENDERIZAÇÃO
+       ========================================================================== */
+    const screen = document.getElementById('screen');
+    function setTopbar(inGame) {
+      document.getElementById('btn-restart').hidden = !inGame;
+      document.getElementById('btn-home').hidden = !inGame;
+    }
+    function focusEl(selector) {
+      const el = screen.querySelector(selector) || screen.querySelector('h1, h2');
+      if (!el) return;
+      if (!/^(INPUT|BUTTON)$/.test(el.tagName)) el.setAttribute('tabindex', '-1');
+      el.focus();
+    }
+
+    function renderHome() {
+      setTopbar(false);
+      st = null;
+      const resume = save.current
+        ? `<p><button type="button" class="btn" id="btn-resume">▶ Continuar rodada salva (${save.current.grade}º ano)</button></p>` : '';
+      const history = save.history.length
+        ? `<h3>Rodadas anteriores neste aparelho</h3><ol class="history">${save.history.map((h) =>
+            `<li>${escapeHtml(h.date)} — ${h.grade}º ano: receita ${brl(h.revenue)}, lucro nas vendas ${brl(h.profit)}, ${h.firstTry} de ${h.steps} contas certas de primeira.</li>`).join('')}</ol>` : '';
+      screen.innerHTML = `
+        <section class="card hero" aria-labelledby="title">
+          <div class="fruits" aria-hidden="true">🍎🍌🍍🥬🥚</div>
+          <h1 id="title">Feira das Boas Escolhas</h1>
+          <p>Hoje a sua equipe cuida de uma barraca na feira! Atendam os clientes, calculem preços e troco, cuidem do estoque e fechem as contas do dia.</p>
+        </section>
+        <section class="card" aria-labelledby="how">
+          <h2 id="how">Como jogar</h2>
+          <ul class="instructions">
+            <li>Um cliente chega por vez. Leiam o pedido com atenção.</li>
+            <li><strong>1.</strong> Separem os itens com os botões + e −. <strong>2.</strong> Calculem o total. <strong>3.</strong> Se o pagamento for em dinheiro, calculem o troco.</li>
+            <li>Digitem valores com vírgula, como <strong>12,50</strong>. Pode escrever "R$" ou não.</li>
+            <li>Errou? O jogo explica como pensar e vocês tentam de novo. Não há cronômetro.</li>
+            <li>No fim da rodada, vejam o relatório: receita, custos, lucro e o que foi vendido.</li>
+            <li>Dica de equipe: uma pessoa lê o pedido, outra faz a conta e outra confere.</li>
+          </ul>
+          <p><a class="btn" href="tutorial.html" style="text-decoration:none">📘 Ver o tutorial completo (passo a passo e exemplos)</a></p>
+          <form id="start-form">
+            <fieldset class="grade-picker">
+              <legend>Escolham o nível:</legend>
+              ${gradeOption(6, 'Dinheiro e decimais, troco, frações de quantidades e leitura da tabela de preços e estoque.')}
+              ${gradeOption(7, 'Porcentagem de desconto e acréscimo, razão e proporção, comparação de ofertas e lucro.')}
+            </fieldset>
+            <button type="submit" class="btn btn-main">🧺 Abrir a barraca</button>
+          </form>
+          ${resume}
+          <p class="privacy" style="margin-top:12px">🔒 <strong>Privacidade:</strong> não pedimos nome nem dados pessoais. Este jogo usa dinheiro de mentira: não há compras nem prêmios reais. O progresso fica salvo <strong>somente neste navegador, neste aparelho</strong>.</p>
+          <p><button type="button" class="btn btn-small" id="btn-clear">🗑 Apagar progresso salvo neste aparelho</button></p>
+          ${history}
+        </section>`;
+      focusEl('h1');
+      document.getElementById('start-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        startRound(Number(new FormData(e.target).get('grade')));
+      });
+      const resumeBtn = document.getElementById('btn-resume');
+      if (resumeBtn) resumeBtn.addEventListener('click', () => { st = save.current; renderPlay(); });
+      document.getElementById('btn-clear').addEventListener('click', () => { save = defaultSave(); persist(); renderHome(); announce('Progresso apagado deste aparelho.'); });
+    }
+    function gradeOption(grade, description) {
+      return `<div class="grade-option">
+          <input type="radio" name="grade" id="grade-${grade}" value="${grade}" ${save.grade === grade ? 'checked' : ''}>
+          <label for="grade-${grade}"><strong>Modo ${grade}º ano</strong><br><span class="small">${description}</span><span class="check"></span></label>
+        </div>`;
+    }
+    function startRound(grade) {
+      save.grade = grade;
+      st = newRound(grade);
+      loadCurrent();
+      saveRound();
+      renderPlay();
+    }
+
+    function revenue() { return st.sales.reduce((s, x) => s + x.total, 0); }
+
+    function statsHtml() {
+      const done = st.sales.length + st.skipped.length;
+      return `<div class="stats" aria-label="Situação da barraca">
+          <div class="stat"><span class="small muted">💰 Caixa agora</span><b>${brl(st.cash)}</b></div>
+          <div class="stat"><span class="small muted">📈 Receita (vendas)</span><b>${brl(revenue())}</b></div>
+          <div class="stat"><span class="small muted">🧑‍🤝‍🧑 Clientes atendidos</span><b>${st.sales.length} de ${clientCount()}</b></div>
+          <div class="stat"><span class="small muted">✔ Contas certas de 1ª</span><b>${st.stats.firstTry} de ${st.stats.steps}</b></div>
+        </div><span class="sr-only">${done} etapas concluídas</span>`;
+    }
+
+    function priceTableHtml() {
+      const rows = BASE_ORDER.map((id) => {
+        const p = PRODUCTS[id];
+        const promo = st.promo && st.promo.product === id;
+        const price = promo ? `<s>${brl(p.price)}</s> ${brl(st.promo.price)} <span class="promo-tag">PROMOÇÃO</span>` : brl(p.price);
+        const stock = st.stock[id] === 0 ? '0 ⚠️ esgotado' : st.stock[id];
+        return `<tr><td>${p.emoji} ${p.name}</td><td>${p.unit}</td><td class="num">${price}</td><td class="num">${brl(p.cost)}</td><td class="num">${stock}</td></tr>`;
+      }).join('');
+      const juice = st.grade === 7
+        ? `<tr><td>${JUICE.emoji} ${JUICE.name}</td><td>copo</td><td class="num">${brl(JUICE.price)}</td><td class="num">${brl(unitCost('suco'))}</td><td class="num">feito na hora (3 laranjas)</td></tr>` : '';
+      return `<h3 id="table-title">📋 Preços e estoque</h3>
+        <div class="table-wrap"><table>
+          <caption class="sr-only">Preço de venda, custo para a barraca e estoque de cada produto</caption>
+          <thead><tr><th scope="col">Produto</th><th scope="col">Vendido por</th><th scope="col" class="num">Preço de venda</th><th scope="col" class="num">Custo p/ barraca</th><th scope="col" class="num">Estoque</th></tr></thead>
+          <tbody>${rows}${juice}</tbody>
+        </table></div>
+        <p class="small muted" style="margin-top:6px">Preço de venda: o que o cliente paga. Custo: o que a barraca pagou ao fornecedor por unidade.</p>`;
+    }
+
+    function salesLogHtml() {
+      if (!st.sales.length) return '<h3>🧾 Vendas da rodada</h3><p class="small muted">Nenhuma venda ainda.</p>';
+      return `<h3>🧾 Vendas da rodada</h3><ol class="small" style="padding-left:20px">${st.sales.map((s) =>
+        `<li>${escapeHtml(s.name)}: ${escapeHtml(s.items)} — ${brl(s.total)}${s.troco ? ` (troco ${brl(s.troco)})` : ''}</li>`).join('')}</ol>`;
+    }
+
+    function renderPlay() {
+      setTopbar(true);
+      if (!st.current) { renderReport(); return; }
+      screen.innerHTML = `
+        ${statsHtml()}
+        <div class="layout">
+          <section class="card" aria-labelledby="turn-title" id="turn">${st.current.type === 'event' ? eventHtml(st.current) : clientHtml(st.current)}</section>
+          <aside class="card" aria-labelledby="table-title">${priceTableHtml()}${salesLogHtml()}</aside>
+        </div>`;
+      bindTurn();
+      const c = st.current;
+      if (c.type === 'client' && c.done) focusEl('#btn-next');
+      else if (c.type === 'client' && c.steps[c.step].id !== 'select') focusEl('#ask-input, [data-option]');
+      else focusEl('#turn-title');
+    }
+
+    function stepsBar(c) {
+      return `<ol class="steps" aria-label="Etapas do atendimento">${c.steps.map((s, i) =>
+        `<li class="${i < c.step || c.done ? 'done' : i === c.step ? 'now' : ''}">${s.label}</li>`).join('')}</ol>`;
+    }
+
+    function clientHtml(c) {
+      const number = st.sales.length + 1;
+      const step = c.steps[c.step];
+      return `
+        <div class="client-head">
+          <div class="avatar" aria-hidden="true">${c.avatar}</div>
+          <div><p class="small muted" style="margin:0">Cliente ${number} de ${clientCount()}</p><h2 id="turn-title">${escapeHtml(c.name)} chegou</h2></div>
+        </div>
+        <p class="speech">💬 "${escapeHtml(c.speech)}"</p>
+        ${c.rule ? `<p class="rule">ℹ️ ${escapeHtml(c.rule)}</p>` : ''}
+        ${stepsBar(c)}
+        <div id="step-area">${c.done ? receiptHtml(c) : step.id === 'select' ? pickerHtml(c) : askHtml(step)}</div>
+        <div id="feedback" aria-live="polite">${c.lastFeedback || ''}</div>`;
+    }
+
+    function pickerHtml(c) {
+      const ids = BASE_ORDER.concat(st.grade === 7 ? ['suco'] : []);
+      return `<h3>Separem os itens do pedido</h3>
+        <div class="picker">${ids.map((id) => {
+          const p = productInfo(id);
+          const q = c.cart[id] || 0;
+          return `<div class="pick-row ${q ? 'has' : ''}">
+              <span><span aria-hidden="true">${p.emoji}</span> <strong>${p.name}</strong> <span class="small muted">${brl(unitPrice(id))} / ${p.unit} · ${id === 'suco' ? `dá para fazer ${available('suco', {})}` : `estoque ${st.stock[id]}`}</span></span>
+              <span class="qty">
+                <button type="button" class="btn btn-small" data-minus="${id}" aria-label="Tirar 1 ${p.name}">−</button>
+                <output aria-live="off" id="qty-${id}" aria-label="${p.name} no pedido">${q}</output>
+                <button type="button" class="btn btn-small" data-plus="${id}" aria-label="Pôr mais 1 ${p.name}">+</button>
+              </span>
+            </div>`;
+        }).join('')}</div>
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn btn-main" id="btn-confirm-items">✔ Conferir itens separados</button>
+          <button type="button" class="btn btn-small" id="btn-empty-cart">Esvaziar</button>
+        </div>`;
+    }
+
+    function askHtml(step) {
+      if (step.kind === 'choice') {
+        return `<div class="ask"><p><strong>${escapeHtml(step.prompt)}</strong></p>
+          <div class="row" role="group" aria-label="Opções">${step.options.map((o) =>
+            `<button type="button" class="btn" data-option="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join('')}</div></div>`;
+      }
+      const isMoney = step.kind === 'money';
+      return `<form class="ask" id="ask-form" novalidate>
+          <label for="ask-input">${escapeHtml(step.prompt)}</label>
+          <div class="row">
+            ${isMoney ? '<span aria-hidden="true">R$</span>' : ''}
+            <input class="answer-input" id="ask-input" inputmode="${isMoney ? 'decimal' : 'numeric'}" autocomplete="off" aria-describedby="ask-help">
+            <button type="submit" class="btn btn-main">Conferir</button>
+          </div>
+          <p class="small muted" id="ask-help" style="margin-top:4px">${isMoney ? 'Escrevam com vírgula, por exemplo: 12,50' : 'Escrevam um número inteiro.'}</p>
+        </form>`;
+    }
+
+    function receiptHtml(c) {
+      const lines = c.lines.map((l) => `${productInfo(l.product).emoji} ${qtyText(l.product, l.qty)} × ${dec(unitPrice(l.product, c))} = ${dec(l.qty * unitPrice(l.product, c))}`).join('\n');
+      const pay = c.method === 'dinheiro' ? `\nPago: ${brl(c.paid)}\nTroco: ${brl(c.paid - c.total)}` : `\nPagamento: ${c.method === 'pix' ? 'Pix' : c.method === 'debito' ? 'cartão de débito' : 'cartão de crédito'}`;
+      return `<p class="receipt" aria-label="Recibo">${escapeHtml(lines)}\nTOTAL: ${brl(c.total)}${escapeHtml(pay)}</p>
+        <button type="button" class="btn btn-main" id="btn-next">${st.pos + 1 < TIMELINE[st.grade].length ? 'Próximo ➜' : 'Fechar a barraca e ver o relatório 📊'}</button>`;
+    }
+
+    function eventHtml(ev) {
+      const answered = ev.step > 0;
+      return `<h2 id="turn-title">${ev.title}</h2>
+        <p class="speech">${escapeHtml(ev.text)}</p>
+        <p class="small muted">Este evento é opcional. Calculem primeiro e depois decidam, ou pulem.</p>
+        <div id="step-area">${answered
+          ? `<div class="row">${ev.kind === 'repo' && ev.cost > st.cash ? '' : `<button type="button" class="btn btn-main" id="btn-accept">${ev.acceptLabel}</button>`}
+              <button type="button" class="btn" id="btn-skip">${ev.skipLabel}</button></div>
+              ${ev.kind === 'repo' && ev.cost > st.cash ? `<p class="feedback err">O caixa tem ${brl(st.cash)}, que não é suficiente para pagar ${brl(ev.cost)}. Não dá para comprar agora.</p>` : ''}`
+          : askHtml(ev.ask) + '<p style="margin-top:10px"><button type="button" class="btn btn-small" id="btn-skip">Pular este evento</button></p>'}</div>
+        <div id="feedback" aria-live="polite">${ev.lastFeedback || ''}</div>`;
+    }
+
+    /* ==========================================================================
+       INTERAÇÕES
+       ========================================================================== */
+    function bindTurn() {
+      screen.querySelectorAll('[data-plus]').forEach((b) => b.addEventListener('click', () => changeQty(b.dataset.plus, 1)));
+      screen.querySelectorAll('[data-minus]').forEach((b) => b.addEventListener('click', () => changeQty(b.dataset.minus, -1)));
+      const confirm = document.getElementById('btn-confirm-items');
+      if (confirm) confirm.addEventListener('click', checkSelection);
+      const empty = document.getElementById('btn-empty-cart');
+      if (empty) empty.addEventListener('click', () => { st.current.cart = {}; st.current.lastFeedback = ''; saveRound(); renderPlay(); focusEl('#btn-confirm-items'); });
+      const form = document.getElementById('ask-form');
+      if (form) form.addEventListener('submit', (e) => { e.preventDefault(); answerStep(document.getElementById('ask-input').value); });
+      screen.querySelectorAll('[data-option]').forEach((b) => b.addEventListener('click', () => answerStep(b.dataset.option)));
+      const next = document.getElementById('btn-next');
+      if (next) next.addEventListener('click', advance);
+      const accept = document.getElementById('btn-accept');
+      if (accept) accept.addEventListener('click', acceptEvent);
+      const skip = document.getElementById('btn-skip');
+      if (skip) skip.addEventListener('click', skipEvent);
+    }
+
+    function setFeedback(kind, title, body) {
+      const html = `<div class="feedback ${kind}"><strong>${title}</strong> ${body}</div>`;
+      st.current.lastFeedback = html;
+      const box = document.getElementById('feedback');
+      if (box) box.innerHTML = html;
+      announce(title.replace(/<[^>]+>/g, ''));
+    }
+
+    function changeQty(id, delta) {
+      const c = st.current;
+      const now = c.cart[id] || 0;
+      if (delta > 0 && available(id, c.cart) < 1) {
+        const p = productInfo(id);
+        setFeedback('err', `⚠️ Não há mais ${p.plural} no estoque.`,
+          id === 'suco' ? 'Cada copo precisa de 3 laranjas e não há laranjas suficientes.' : `O estoque de ${p.plural} é ${st.stock[id]}. O estoque não pode ficar negativo.`);
+        return;
+      }
+      const next = Math.max(0, now + delta);
+      if (next === 0) delete c.cart[id]; else c.cart[id] = next;
+      document.getElementById('qty-' + id).textContent = next;
+      document.getElementById('qty-' + id).closest('.pick-row').classList.toggle('has', next > 0);
+      saveRound();
+      announce(`${productInfo(id).name}: ${next}`);
+    }
+
+    function cartMatches(cart, expected) {
+      const keys = new Set(Object.keys(cart).concat(Object.keys(expected)));
+      return [...keys].every((k) => (cart[k] || 0) === (expected[k] || 0));
+    }
+    function cartDiff(cart, expected) {
+      const notes = [];
+      new Set(Object.keys(cart).concat(Object.keys(expected))).forEach((k) => {
+        const have = cart[k] || 0, want = expected[k] || 0;
+        if (have !== want) notes.push(`${productInfo(k).name}: separaram ${have}, ${want === 0 ? 'mas o cliente não pediu' : `o pedido é ${want}`}`);
+      });
+      return notes;
+    }
+
+    function checkSelection() {
+      const c = st.current;
+      const step = c.steps[c.step];
+      c.tries += 1;
+      if (cartMatches(c.cart, step.expected)) {
+        countStep(c.tries === 1);
+        const msg = step.explain ? step.explain : 'Os itens conferem com o pedido.';
+        nextStep(`<div class="feedback ok"><strong>✅ Itens certos!</strong> ${escapeHtml(msg)}</div>`);
+        return;
+      }
+      const diff = cartDiff(c.cart, step.expected);
+      if (c.tries >= 2) {
+        c.cart = Object.assign({}, step.expected);
+        countStep(false, true);
+        nextStep(`<div class="feedback info"><strong>🔎 Vamos conferir juntos.</strong> ${escapeHtml(diff.join('; '))}. ${escapeHtml(step.explain || '')} Os itens foram corrigidos. Sigam para a próxima etapa.</div>`);
+        return;
+      }
+      const tip = step.explain && /dúzia/.test(c.speech) ? 'Lembrem: 1 dúzia = 12. Para achar uma fração da dúzia, dividam 12 pelo denominador e multipliquem pelo numerador.'
+        : step.explain ? 'Olhem a coluna "Estoque" da tabela.' : 'Releiam o pedido do cliente com calma.';
+      setFeedback('err', '❌ Os itens ainda não conferem.', `${escapeHtml(diff.join('; '))}. ${tip}`);
+      saveRound();
+    }
+
+    function answerStep(raw) {
+      const ev = st.current.type === 'event' ? st.current : null;
+      const c = st.current;
+      const step = ev ? ev.ask : c.steps[c.step];
+      let ok;
+      if (step.kind === 'choice') ok = raw === step.answer;
+      else {
+        const value = step.kind === 'money' ? parseMoney(raw) : parseCount(raw);
+        if (Number.isNaN(value)) {
+          setFeedback('err', '✏️ Não entendi o valor.', step.kind === 'money' ? 'Escrevam só números, com vírgula e até duas casas depois dela. Ex.: 7,25' : 'Escrevam um número inteiro. Ex.: 9');
+          return;
+        }
+        ok = value === step.answer;
+      }
+      c.tries += 1;
+      if (ok) {
+        countStep(c.tries === 1);
+        const good = `<div class="feedback ok"><strong>✅ Certo!</strong> <span class="calc">${escapeHtml(step.calc)}</span></div>`;
+        if (ev) { ev.step = 1; ev.tries = 0; ev.lastFeedback = good; saveRound(); renderPlay(); focusEl('#btn-accept, #btn-skip'); return; }
+        nextStep(good);
+        return;
+      }
+      const reveal = c.tries >= 2;
+      if (reveal && c.helpedCounted !== step.id) { st.stats.helped += 1; c.helpedCounted = step.id; }
+      setFeedback('err', '❌ Ainda não.', `${escapeHtml(step.method)}${reveal ? `<span class="calc">Vejam o cálculo:\n${escapeHtml(step.calc)}</span>Agora respondam com esse valor.` : ' Tentem de novo!'}`);
+      saveRound();
+      const input = document.getElementById('ask-input');
+      if (input) { input.select(); input.focus(); }
+    }
+
+    function countStep(firstTry, helped) {
+      st.stats.steps += 1;
+      if (firstTry) st.stats.firstTry += 1;
+      if (helped) st.stats.helped += 1;
+    }
+
+    function nextStep(feedbackHtml) {
+      const c = st.current;
+      c.step += 1;
+      c.tries = 0;
+      c.lastFeedback = feedbackHtml;
+      if (c.step >= c.steps.length) completeSale(c);
+      saveRound();
+      renderPlay();
+      announce(feedbackHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    }
+
+    /** Aplica a venda: baixa o estoque, atualiza caixa e relatório. */
+    function completeSale(c) {
+      c.done = true;
+      c.lines.forEach((l) => {
+        if (l.product === 'suco') st.stock.laranja -= l.qty * JUICE.orangesPerCup;
+        else st.stock[l.product] -= l.qty;
+      });
+      st.cash += c.total;
+      st.sales.push({
+        name: c.name,
+        items: c.lines.map((l) => qtyText(l.product, l.qty)).join(', '),
+        lines: c.lines.map((l) => ({ product: l.product, qty: l.qty, value: l.qty * unitPrice(l.product, c) })),
+        total: c.total, cost: c.cost, troco: c.method === 'dinheiro' ? c.paid - c.total : 0, method: c.method
+      });
+      c.lastFeedback += '<div class="feedback ok"><strong>🎉 Atendimento concluído!</strong> Caixa, estoque e relatório foram atualizados.</div>';
+      announce('Atendimento concluído.');
+    }
+
+    function acceptEvent() {
+      const ev = st.current;
+      if (ev.kind === 'promo') st.promo = { product: ev.product, price: ev.price, pct: ev.pct || null };
+      if (ev.kind === 'repo') {
+        if (ev.cost > st.cash) return;
+        st.cash -= ev.cost;
+        st.stock[ev.product] += ev.qty;
+        st.restocks.push({ product: ev.product, qty: ev.qty, cost: ev.cost });
+      }
+      advance();
+    }
+    function skipEvent() {
+      st.skipped.push(st.current.kind);
+      advance();
+    }
+    function advance() {
+      st.pos += 1;
+      loadCurrent();
+      saveRound();
+      renderPlay();
+    }
+
+    /* ==========================================================================
+       RELATÓRIO FINAL
+       ========================================================================== */
+    function reportData() {
+      const rev = revenue();
+      const soldCost = st.sales.reduce((s, x) => s + x.cost, 0);
+      const restockCost = st.restocks.reduce((s, x) => s + x.cost, 0);
+      const change = st.sales.reduce((s, x) => s + x.troco, 0);
+      const items = {};
+      st.sales.forEach((s) => s.lines.forEach((l) => {
+        items[l.product] = items[l.product] || { qty: 0, value: 0 };
+        items[l.product].qty += l.qty;
+        items[l.product].value += l.value;
+      }));
+      return { rev, soldCost, profit: rev - soldCost, restockCost, purchases: st.initialCost + restockCost, change, items };
+    }
+
+    function renderReport() {
+      const d = reportData();
+      if (!st.finished) {
+        st.finished = true;
+        save.completed += 1;
+        save.history.unshift({ date: new Date().toLocaleDateString('pt-BR'), grade: st.grade, revenue: d.rev, profit: d.profit, steps: st.stats.steps, firstTry: st.stats.firstTry });
+        save.history = save.history.slice(0, 5);
+        save.current = null;
+        persist();
+      }
+      setTopbar(false);
+      const itemRows = Object.keys(d.items).map((id) =>
+        `<tr><td>${productInfo(id).emoji} ${productInfo(id).name}</td><td class="num">${d.items[id].qty}</td><td class="num">${brl(d.items[id].value)}</td></tr>`).join('');
+      const stockRows = BASE_ORDER.map((id) => `<tr><td>${PRODUCTS[id].emoji} ${PRODUCTS[id].name}</td><td class="num">${st.stock[id]}</td></tr>`).join('');
+      const expectedCash = START_CASH + d.rev - d.restockCost;
+      screen.innerHTML = `
+        <section class="card hero" aria-labelledby="rep-title">
+          <div class="fruits" aria-hidden="true">📊🧺</div>
+          <h1 id="rep-title">Relatório da barraca</h1>
+          <p>Fim da feira! Vejam como foi o dia da equipe (${st.grade}º ano).</p>
+        </section>
+        <section class="card" aria-labelledby="money-title">
+          <h2 id="money-title">💰 Dinheiro</h2>
+          <div class="table-wrap"><table><tbody>
+            <tr><th scope="row">Receita (total das vendas)</th><td class="num">${brl(d.rev)}</td></tr>
+            <tr><th scope="row">Custo dos produtos vendidos</th><td class="num">${brl(d.soldCost)}</td></tr>
+            <tr><th scope="row">Lucro nas vendas (receita − custo dos vendidos)</th><td class="num"><strong>${brl(d.profit)}</strong></td></tr>
+            <tr><th scope="row">Gastos com compra de estoque (início: ${brl(st.initialCost)} + reposições: ${brl(d.restockCost)})</th><td class="num">${brl(d.purchases)}</td></tr>
+            <tr><th scope="row">Troco entregue aos clientes</th><td class="num">${brl(d.change)}</td></tr>
+            <tr><th scope="row">Caixa: começou com ${brl(START_CASH)}, terminou com</th><td class="num">${brl(st.cash)}</td></tr>
+          </tbody></table></div>
+          <p class="calc">Conferência do caixa: ${dec(START_CASH)} + ${dec(d.rev)} (vendas) − ${dec(d.restockCost)} (reposições) = ${dec(expectedCash)} ${expectedCash === st.cash ? '✔ confere' : '✖ não confere'}</p>
+          <p class="rule">📘 <strong>Receita</strong> é tudo o que entrou com as vendas. <strong>Custo</strong> é o que a barraca pagou pelos produtos. <strong>Lucro</strong> é a receita menos o custo dos produtos vendidos. O troco não é gasto: é a parte do dinheiro do cliente que volta para ele.</p>
+          <p><strong>Resultado:</strong> ${d.profit > 0 ? `a barraca teve lucro de ${brl(d.profit)} com o que vendeu.` : 'a barraca não teve lucro nas vendas desta rodada.'}
+            ${d.purchases > d.rev ? ` A receita ainda não pagou todas as compras de estoque (${brl(d.purchases)}), mas sobraram produtos para vender na próxima feira.` : ' A receita já pagou todas as compras de estoque!'}</p>
+        </section>
+        <section class="card" aria-labelledby="items-title">
+          <h2 id="items-title">🧾 Itens vendidos</h2>
+          <div class="table-wrap"><table>
+            <thead><tr><th scope="col">Produto</th><th scope="col" class="num">Quantidade</th><th scope="col" class="num">Receita</th></tr></thead>
+            <tbody>${itemRows || '<tr><td colspan="3">Nenhum item vendido.</td></tr>'}</tbody>
+          </table></div>
+          <h3 style="margin-top:12px">📦 Estoque que sobrou</h3>
+          <div class="table-wrap"><table><thead><tr><th scope="col">Produto</th><th scope="col" class="num">Unidades</th></tr></thead><tbody>${stockRows}</tbody></table></div>
+        </section>
+        <section class="card" aria-labelledby="team-title">
+          <h2 id="team-title">🤝 Atendimento da equipe</h2>
+          <ul>
+            <li>${st.sales.length} clientes atendidos com as contas conferidas.</li>
+            <li>${st.stats.firstTry} de ${st.stats.steps} etapas certas na primeira tentativa.</li>
+            <li>${st.stats.helped} etapa(s) resolvida(s) com a ajuda da explicação — errar e entender também é aprender!</li>
+            <li>Eventos aproveitados: ${(st.promo ? 1 : 0) + st.restocks.length}; eventos pulados: ${st.skipped.length}.</li>
+          </ul>
+          <p><strong>Para conversar:</strong> qual cálculo foi mais difícil? Que estratégia de troco a equipe usou?</p>
+          <div class="row">
+            <button type="button" class="btn btn-main" id="btn-new">🔁 Nova rodada</button>
+            <button type="button" class="btn" id="btn-to-home">⌂ Voltar ao início</button>
+          </div>
+          <p class="privacy" style="margin-top:12px">🔒 O relatório ficou salvo apenas neste navegador/aparelho.</p>
+        </section>`;
+      focusEl('h1');
+      const grade = st.grade;
+      document.getElementById('btn-new').addEventListener('click', () => startRound(grade));
+      document.getElementById('btn-to-home').addEventListener('click', renderHome);
+    }
+
+    /* ==========================================================================
+       INÍCIO
+       ========================================================================== */
+    document.getElementById('btn-home').addEventListener('click', () => { if (st) saveRound(); renderHome(); });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      if (!st) return;
+      startRound(st.grade);
+      announce('Rodada reiniciada com estoque e caixa novos.');
+    });
+    renderHome();
+  </script>
+</body>
+</html>

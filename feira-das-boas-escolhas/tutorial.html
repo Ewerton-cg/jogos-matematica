@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial · Feira das Boas Escolhas</title>
+  <style>
+    :root {
+      --kraft: #f6ead2; --kraft-2: #ecd9b4; --wood: #8a5a2b; --wood-dark: #5e3a17; --awning: #d62839; --leaf: #2d6a4f;
+      --ink: #2b1d0e; --paper: #fffdf7; --ok: #1d6b3a; --ok-bg: #e2f4e6; --err: #a4161a; --err-bg: #fde6e4; --info-bg: #fff3c4; --focus: #0057d9;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Verdana, "Segoe UI", system-ui, sans-serif; font-size: 1rem; line-height: 1.65; color: var(--ink);
+      background: var(--kraft); background-image: radial-gradient(rgba(138, 90, 43, 0.08) 1px, transparent 1px); background-size: 18px 18px; }
+    .awning { height: 28px; background: repeating-linear-gradient(90deg, var(--awning) 0 40px, #fff 40px 80px); border-bottom: 4px solid var(--wood-dark); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
+    h1, h2, h3 { font-family: "Trebuchet MS", "Segoe UI", sans-serif; line-height: 1.25; }
+    h1 { color: var(--awning); font-size: clamp(1.6rem, 5vw, 2.3rem); margin: 8px 0; }
+    h2 { color: var(--wood-dark); }
+    .card { background: var(--paper); border: 2px solid var(--kraft-2); border-radius: 14px; padding: 18px 20px; margin-top: 16px; box-shadow: 0 5px 0 var(--kraft-2); }
+    .card h2 { margin-top: 0; }
+    a { color: #0b4f8a; }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+    .btn { display: inline-block; min-height: 48px; padding: 12px 18px; border-radius: 12px; font-weight: 700; text-decoration: none;
+      background: var(--leaf); border: 2px solid #1b4332; color: #fff; }
+    .btn-ghost { background: #fff; border-color: var(--wood); color: var(--wood-dark); }
+    nav ol { columns: 2; padding-left: 20px; margin: 0; }
+    @media (max-width: 560px) { nav ol { columns: 1; } }
+    .steps { counter-reset: s; list-style: none; padding: 0; }
+    .steps > li { counter-increment: s; position: relative; padding: 10px 12px 10px 56px; margin-bottom: 10px; background: #fff; border-radius: 12px; border: 1px solid var(--kraft-2); }
+    .steps > li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--awning); color: #fff; font-weight: 800; display: grid; place-items: center; }
+    .box { border-radius: 12px; padding: 10px 14px; margin: 10px 0; border: 2px solid; }
+    .ok { background: var(--ok-bg); border-color: var(--ok); }
+    .err { background: var(--err-bg); border-color: var(--err); }
+    .info { background: var(--info-bg); border-color: #e0a800; }
+    .speech { background: #fff; border: 2px solid var(--wood); border-radius: 14px; padding: 10px 14px; }
+    .calc { font-family: Consolas, "Courier New", monospace; background: #f7f1e3; border: 1px dashed var(--wood); border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; display: block; margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { border-bottom: 1px solid #eadcc2; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: var(--kraft); }
+    td.num { text-align: right; white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+    kbd { background: #fff; border: 1px solid #999; border-bottom-width: 3px; border-radius: 6px; padding: 0 6px; font-family: inherit; }
+    details { background: #fff; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; border: 1px solid var(--kraft-2); }
+    summary { font-weight: 700; cursor: pointer; min-height: 32px; }
+  </style>
+</head>
+<body>
+  <div class="awning" aria-hidden="true"></div>
+  <div class="wrap">
+    <header>
+      <p><a class="btn btn-ghost" href="index.html">← Voltar ao jogo</a></p>
+      <h1>🧺 Tutorial: Feira das Boas Escolhas</h1>
+      <p>Guia para alunos e professores, com um atendimento resolvido do começo ao fim.</p>
+    </header>
+
+    <nav class="card" aria-labelledby="sumario">
+      <h2 id="sumario">Sumário</h2>
+      <ol>
+        <li><a href="#objetivo">Qual é o objetivo</a></li>
+        <li><a href="#tela">Conhecendo a barraca</a></li>
+        <li><a href="#atender">Como atender um cliente</a></li>
+        <li><a href="#exemplo">Exemplo completo</a></li>
+        <li><a href="#tipos">Tipos de cliente</a></li>
+        <li><a href="#eventos">Eventos</a></li>
+        <li><a href="#relatorio">Relatório final</a></li>
+        <li><a href="#duvidas">Dúvidas comuns</a></li>
+        <li><a href="#professor">Para o professor</a></li>
+      </ol>
+    </nav>
+
+    <section class="card" id="objetivo" aria-labelledby="h-obj">
+      <h2 id="h-obj">1. Qual é o objetivo</h2>
+      <p>A equipe cuida de uma barraca de feira por um dia. Chegam <strong>8 clientes</strong>, um de cada vez. Para cada um, a equipe separa os produtos, calcula quanto ele vai pagar e, se for preciso, o troco.</p>
+      <p>No final, a equipe vê se as contas da barraca fecharam. O dinheiro é <strong>de mentira</strong>: não há compras nem prêmios reais, e <strong>não tem cronômetro</strong>.</p>
+    </section>
+
+    <section class="card" id="tela" aria-labelledby="h-tela">
+      <h2 id="h-tela">2. Conhecendo a barraca</h2>
+      <ul>
+        <li><strong>No alto:</strong>
+          <ul>
+            <li>💰 <strong>Caixa agora:</strong> começa com R$ 50,00 para dar troco.</li>
+            <li>📈 <strong>Receita:</strong> o total vendido.</li>
+            <li>🧑‍🤝‍🧑 <strong>Clientes atendidos.</strong></li>
+            <li>✔ <strong>Contas certas de 1ª:</strong> quantas etapas a equipe acertou na primeira tentativa.</li>
+          </ul>
+        </li>
+        <li><strong>Cartão do cliente:</strong> o pedido (💬), as regras do atendimento (ℹ️) e as etapas.</li>
+        <li><strong>📋 Preços e estoque:</strong> preço de venda, custo para a barraca e quantas unidades existem de cada produto.</li>
+        <li><strong>🧾 Vendas da rodada:</strong> a lista do que já foi vendido.</li>
+      </ul>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Produto</th><th scope="col">Preço de venda</th><th scope="col">Custo p/ barraca</th><th scope="col">Estoque inicial</th></tr></thead>
+        <tbody>
+          <tr><td>🍎 Maçã (unidade)</td><td class="num">R$ 1,50</td><td class="num">R$ 0,90</td><td class="num">20</td></tr>
+          <tr><td>🍌 Banana (unidade)</td><td class="num">R$ 0,80</td><td class="num">R$ 0,45</td><td class="num">24</td></tr>
+          <tr><td>🍊 Laranja (unidade)</td><td class="num">R$ 0,75</td><td class="num">R$ 0,40</td><td class="num">30</td></tr>
+          <tr><td>🍍 Abacaxi (unidade)</td><td class="num">R$ 6,50</td><td class="num">R$ 4,00</td><td class="num">5</td></tr>
+          <tr><td>🥬 Alface (pé)</td><td class="num">R$ 3,25</td><td class="num">R$ 1,80</td><td class="num">8</td></tr>
+          <tr><td>🥚 Ovo (unidade)</td><td class="num">R$ 0,60</td><td class="num">R$ 0,35</td><td class="num">36</td></tr>
+          <tr><td>🧃 Suco de laranja (copo, só no 7º ano)</td><td class="num">R$ 4,50</td><td class="num">R$ 1,20</td><td class="num">3 laranjas por copo</td></tr>
+        </tbody>
+      </table></div>
+      <p class="box info"><strong>Preço de venda</strong> é o que o cliente paga. <strong>Custo</strong> é o que a barraca pagou ao fornecedor. A diferença entre os dois é o lucro.</p>
+    </section>
+
+    <section class="card" id="atender" aria-labelledby="h-atender">
+      <h2 id="h-atender">3. Como atender um cliente</h2>
+      <ol class="steps">
+        <li><strong>Leiam o pedido em voz alta.</strong> Prestem atenção na <strong>quantidade</strong>, no <strong>produto</strong> e na <strong>forma de pagamento</strong>: nota em dinheiro, Pix, débito ou crédito.</li>
+        <li><strong>Separar itens:</strong> usem <strong>+</strong> e <strong>−</strong> em cada produto até ficar igual ao pedido. Depois, cliquem em <strong>✔ Conferir itens separados</strong>.</li>
+        <li><strong>Valor total:</strong> calculem quantidade × preço de cada produto, somem tudo e digitem o resultado.</li>
+        <li><strong>Troco</strong> (só se o pagamento for em dinheiro): valor pago − total.</li>
+        <li><strong>Recibo:</strong> conferido tudo, aparece o recibo. O caixa e o estoque são atualizados. Cliquem em <strong>Próximo ➜</strong>.</li>
+      </ol>
+      <p><strong>Como digitar valores:</strong> <code>12,50</code>, <code>12,5</code> ou <code>R$ 12,50</code>, sempre com no máximo duas casas depois da vírgula.</p>
+      <div class="box err"><strong>Errou?</strong> O jogo explica como pensar e vocês tentam de novo. No 2º erro, mostra o cálculo completo. Se errarem duas vezes os itens, o jogo mostra a diferença e corrige o pedido.</div>
+      <p>As etapas aparecem no alto do cartão: <strong>➜</strong> marca a etapa atual e <strong>✔</strong> as concluídas.</p>
+    </section>
+
+    <section class="card" id="exemplo" aria-labelledby="h-ex">
+      <h2 id="h-ex">4. Exemplo completo (6º ano)</h2>
+      <p class="speech">💬 "Bom dia! Quero 3 maçãs e 2 bananas. Vou pagar com uma nota de R$ 10,00."</p>
+      <p><strong>Passo 1: separar.</strong> Maçã: clicar 3 vezes em +. Banana: clicar 2 vezes em +. Depois, Conferir.</p>
+      <p><strong>Passo 2: total.</strong></p>
+      <span class="calc">Maçãs:   3 × 1,50 = 4,50
+Bananas: 2 × 0,80 = 1,60
+Total:   4,50 + 1,60 = 6,10</span>
+      <p><strong>Passo 3: troco.</strong> Dá para fazer a subtração ou "completar", como o feirante faz:</p>
+      <span class="calc">Subtração:  10,00 − 6,10 = 3,90
+Completando: de 6,10 até 7,00 faltam 0,90; de 7,00 até 10,00 faltam 3,00
+             0,90 + 3,00 = 3,90</span>
+      <div class="box err"><strong>Se digitarem 4,90</strong>, o jogo diz: "Troco = valor pago − valor da compra. Dica: completem de quanto em quanto até chegar no valor pago."</div>
+      <div class="box ok"><strong>Com 3,90</strong>, aparece o recibo e a venda entra no relatório.</div>
+    </section>
+
+    <section class="card" id="tipos" aria-labelledby="h-tipos">
+      <h2 id="h-tipos">5. Tipos de cliente</h2>
+      <h3>Modo 6º ano</h3>
+      <ul>
+        <li><strong>Compra comum com nota:</strong> total e troco, como no exemplo.</li>
+        <li><strong>Fração de dúzia:</strong> "Quero 1/4 de uma dúzia de ovos". Como 1 dúzia = 12, temos 12 ÷ 4 × 1 = <strong>3 ovos</strong>. E 2/3 de dúzia = 12 ÷ 3 × 2 = 8.</li>
+        <li><strong>Pix ou débito:</strong> o cliente paga o valor exato. Só precisa calcular o total.</li>
+        <li><strong>Pedido maior que o estoque:</strong> "Quero 7 abacaxis. Se não tiver tudo isso, levo o que tiver!" Olhem a coluna Estoque e vendam só o que existe. O jogo não deixa o estoque ficar negativo.</li>
+      </ul>
+      <h3>Modo 7º ano</h3>
+      <ul>
+        <li><strong>Lucro da venda:</strong> depois do troco, calculem o lucro. Exemplo: vender 3 maçãs.
+          <span class="calc">Venda: 3 × 1,50 = 4,50
+Custo: 3 × 0,90 = 2,70
+Lucro: 4,50 − 2,70 = 1,80   (o troco não entra nessa conta)</span></li>
+        <li><strong>Suco (proporção):</strong> cada copo leva 3 laranjas.
+          <span class="calc">4 copos → 4 × 3 = 12 laranjas      Total: 4 × 4,50 = 18,00</span></li>
+        <li><strong>Comparar ofertas:</strong> "6 maçãs: pacote com 3 por R$ 4,20 ou avulsas a R$ 1,50?"
+          <span class="calc">Avulsas: 6 × 1,50 = 9,00
+Pacote:  2 × 4,20 = 8,40   → o pacote é mais barato</span>
+          Atenção: nem sempre o pacote ganha. Façam a conta!</li>
+        <li><strong>Promoção no produto</strong> (desconto aplicado <strong>ANTES</strong> de multiplicar). Exemplo com o abacaxi a 20% de desconto:
+          <span class="calc">20% de 6,50 = 1,30 → novo preço 6,50 − 1,30 = 5,20
+2 abacaxis: 2 × 5,20 = 10,40</span></li>
+        <li><strong>Cupom de 10%</strong> (desconto aplicado <strong>DEPOIS</strong> de somar): primeiro o total, depois o desconto.
+          <span class="calc">Total 12,00 → 10% = 1,20 → paga 12,00 − 1,20 = 10,80</span></li>
+        <li><strong>Cartão de crédito com acréscimo de 5%</strong> (calculado <strong>DEPOIS</strong> de somar):
+          <span class="calc">Total 8,00 → 10% = 0,80 → 5% = 0,40 → cobra 8,00 + 0,40 = 8,40</span></li>
+      </ul>
+      <p class="box info">O cartão de cada cliente diz, na caixa ℹ️, se o desconto ou acréscimo é aplicado antes ou depois de somar. Leiam sempre!</p>
+    </section>
+
+    <section class="card" id="eventos" aria-labelledby="h-eventos">
+      <h2 id="h-eventos">6. Eventos</h2>
+      <p>Durante a rodada aparecem 2 eventos <strong>opcionais</strong>. Primeiro a equipe faz o cálculo, depois decide se aceita ou pula.</p>
+      <ul>
+        <li><strong>🏷️ Promoção relâmpago:</strong> no 6º ano, um produto fica R$ 0,50 mais barato; no 7º ano, fica 20% mais barato. Vocês calculam o novo preço. Se aceitarem, ele vale para os próximos clientes e aparece na tabela como PROMOÇÃO.</li>
+        <li><strong>🚚 Reposição de estoque:</strong> o fornecedor oferece mais unidades do produto que está acabando. Vocês calculam quanto custa (quantidade × custo). Se comprarem, o valor <strong>sai do caixa</strong> e o estoque aumenta. Sem dinheiro suficiente no caixa, não dá para comprar.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="relatorio" aria-labelledby="h-rel">
+      <h2 id="h-rel">7. Relatório final</h2>
+      <p>Depois do 8º cliente, cliquem em <strong>Fechar a barraca e ver o relatório 📊</strong>:</p>
+      <div class="table-wrap"><table><tbody>
+        <tr><th scope="row">Receita</th><td>Tudo o que entrou com as vendas.</td></tr>
+        <tr><th scope="row">Custo dos produtos vendidos</th><td>Quanto a barraca pagou pelos produtos que vendeu.</td></tr>
+        <tr><th scope="row">Lucro nas vendas</th><td>Receita − custo dos produtos vendidos.</td></tr>
+        <tr><th scope="row">Gastos com estoque</th><td>A compra inicial + as reposições.</td></tr>
+        <tr><th scope="row">Troco entregue</th><td>O dinheiro do cliente que voltou para ele. Não é gasto.</td></tr>
+        <tr><th scope="row">Conferência do caixa</th><td>R$ 50,00 + vendas − reposições deve ser igual ao caixa final.</td></tr>
+      </tbody></table></div>
+      <p>O relatório também mostra os itens vendidos, o estoque que sobrou e o desempenho da equipe. Para jogar outra vez, cliquem em <strong>🔁 Nova rodada</strong>. Os clientes mudam a cada rodada.</p>
+    </section>
+
+    <section class="card" id="duvidas" aria-labelledby="h-duvidas">
+      <h2 id="h-duvidas">8. Dúvidas comuns</h2>
+      <details><summary>O jogo disse "Não entendi o valor".</summary><p>Escrevam só números, com vírgula e no máximo duas casas depois dela. Por exemplo: <code>7,25</code>. Não usem três casas, como <code>7,255</code>.</p></details>
+      <details><summary>O botão + não aumenta a quantidade.</summary><p>Acabou o estoque daquele produto, e o jogo avisa com uma mensagem. No suco, o limite depende das laranjas: cada copo usa 3.</p></details>
+      <details><summary>Por que o lucro é diferente da receita?</summary><p>Porque a barraca também pagou pelos produtos. Lucro = o que entrou (receita) − o que custaram os produtos vendidos.</p></details>
+      <details><summary>Preciso aceitar os eventos?</summary><p>Não. Eles são opcionais. Calcular antes ajuda a decidir, mas vocês podem clicar em "Pular este evento".</p></details>
+      <details><summary>Fechei o navegador no meio. Perdi tudo?</summary><p>Não. Na tela inicial aparece "▶ Continuar rodada salva". O progresso fica só neste navegador, neste aparelho, e não pedimos nenhum dado pessoal.</p></details>
+    </section>
+
+    <section class="card" id="professor" aria-labelledby="h-prof">
+      <h2 id="h-prof">9. Para o professor</h2>
+      <ul>
+        <li><strong>6º ano:</strong> operações com dinheiro e decimais, troco, frações de quantidades, leitura de tabela de preços e estoque.</li>
+        <li><strong>7º ano:</strong> porcentagem de desconto e acréscimo (antes ou depois da soma), razão e proporção na receita do suco, comparação de ofertas, lucro simples.</li>
+        <li><strong>Tempo aproximado:</strong> de 25 a 40 minutos por rodada.</li>
+        <li><strong>Sugestão de papéis:</strong> uma pessoa lê o pedido, outra faz a conta e outra confere antes de digitar. Revezem a cada cliente.</li>
+        <li><strong>Para conversar no fim:</strong> "Qual cálculo foi mais difícil?" e "Que estratégia de troco a equipe usou?".</li>
+        <li>Teclado: <kbd>Tab</kbd> para navegar, <kbd>Enter</kbd> para confirmar.</li>
+      </ul>
+      <p><a class="btn" href="index.html">▶ Abrir o jogo</a></p>
+    </section>
+  </div>
+</body>
+</html>
